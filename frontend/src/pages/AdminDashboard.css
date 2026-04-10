@@ -1,0 +1,83 @@
+.dash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.dash-actions { display: flex; gap: 10px; }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 36px;
+}
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+.dash-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+.dash-section h2 {
+  font-size: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.overdue-badge {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.overdue-days { font-size: 13px; }
+.days-past    { color: var(--color-danger); font-weight: 600; }
+
+.loan-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.loan-table th {
+  text-align: left; padding: 10px 14px;
+  font-size: 12px; font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+}
+.loan-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+.loan-table tr:last-child td { border-bottom: none; }
+.loan-table tbody tr:hover   { background: var(--color-surface-2); }
+.table-link { color: var(--color-accent); }
+.table-link:hover { text-decoration: underline; }
+
+/* Genre chart */
+.genre-section { }
+.genre-list    { display: flex; flex-direction: column; gap: 12px; }
+.genre-row     { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.genre-name    { width: 90px; color: var(--color-text-muted); flex-shrink: 0; }
+.genre-bar-wrap { flex: 1; height: 8px; background: var(--color-surface-2); border-radius: 99px; overflow: hidden; }
+.genre-bar     { height: 100%; background: var(--color-accent); border-radius: 99px; transition: width 0.4s ease; }
+.genre-count   { width: 28px; text-align: right; font-weight: 600; color: var(--color-text); }
+
+@media (max-width: 900px) {
+  .dash-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .dash-actions .btn:last-child { display: none; }
+}

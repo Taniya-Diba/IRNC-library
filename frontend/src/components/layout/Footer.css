@@ -1,0 +1,17 @@
+.footer {
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding: 20px 0;
+  margin-top: auto;
+}
+.footer-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--color-text-subtle);
+}
+.footer-brand { font-weight: 600; color: var(--color-text-muted); }
+.footer-sep   { opacity: 0.4; }
+.footer-link  { color: var(--color-text-muted); transition: color 0.15s; }
+.footer-link:hover { color: var(--color-accent); }
