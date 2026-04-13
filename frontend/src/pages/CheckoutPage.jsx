@@ -14,11 +14,13 @@ export default function CheckoutPage() {
   const [submitting, setSub]    = useState(false);
   const [done, setDone]         = useState(false);
 
+  const defaultDue = new Date(Date.now() + 14 * 86400 * 1000).toISOString().slice(0, 10);
+
   const [form, setForm] = useState({
     borrower_name:  '',
     borrower_phone: '',
     borrower_email: '',
-    due_date:       '',
+    due_date:       defaultDue,
     notes:          '',
   });
 
@@ -60,7 +62,7 @@ export default function CheckoutPage() {
           {form.due_date && (
             <p className="success-due">
               Please return it by{' '}
-              <strong>{new Date(form.due_date).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}</strong>
+              <strong>{(() => { const [y,m,d] = form.due_date.split('-'); return `${m}/${d}/${y}`; })()}</strong>
             </p>
           )}
           <Link to="/" className="btn btn-secondary" style={{ marginTop: 24 }}>
@@ -126,9 +128,6 @@ export default function CheckoutPage() {
       </div>
     </main>
   );
-
-  // Default due date = 2 weeks from today
-  const defaultDue = new Date(Date.now() + 14 * 86400 * 1000).toISOString().slice(0, 10);
 
   return (
     <main className="page-content">

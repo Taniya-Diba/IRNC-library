@@ -70,16 +70,26 @@ router.post('/', async (req, res, next) => {
     if (bookErr || !book) return res.status(404).json({ error: 'Book not found' });
     if (book.status !== 'in') return res.status(409).json({ error: 'Book is not available for checkout' });
 
-    // Upsert borrower by name
-    const { data: borrower, error: bErr } = await supabase
+    // Find or create borrower by name
+    let borrower;
+    const { data: existing, error: findErr } = await supabase
       .from('borrowers')
-      .upsert(
-        { name: body.borrower_name, phone: body.borrower_phone || null, email: body.borrower_email || null },
-        { onConflict: 'name', ignoreDuplicates: false }
-      )
       .select()
-      .single();
-    if (bErr) throw bErr;
+      .eq('name', body.borrower_name)
+      .maybeSingle();
+    if (findErr) throw findErr;
+
+    if (existing) {
+      borrower = existing;
+    } else {
+      const { data: created, error: createErr } = await supabase
+        .from('borrowers')
+        .insert({ name: body.borrower_name, phone: body.borrower_phone || null, email: body.borrower_email || null })
+        .select()
+        .single();
+      if (createErr) throw createErr;
+      borrower = created;
+    }
 
     // Create loan
     const { data: loan, error: lErr } = await supabase
