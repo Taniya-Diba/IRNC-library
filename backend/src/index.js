@@ -5,11 +5,12 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { ZodError } from 'zod';
 
-import booksRouter    from './routes/books.js';
-import loansRouter    from './routes/loans.js';
+import booksRouter     from './routes/books.js';
+import loansRouter     from './routes/loans.js';
 import borrowersRouter from './routes/borrowers.js';
-import authRouter     from './routes/auth.js';
-import statsRouter    from './routes/stats.js';
+import authRouter      from './routes/auth.js';
+import statsRouter     from './routes/stats.js';
+import usersRouter     from './routes/users.js';
 import { startOverdueCron } from './services/overdueJob.js';
 
 const app  = express();
@@ -35,6 +36,7 @@ app.use('/api/books',     booksRouter);
 app.use('/api/loans',     loansRouter);
 app.use('/api/borrowers', borrowersRouter);
 app.use('/api/stats',     statsRouter);
+app.use('/api/users',     usersRouter);
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
@@ -44,13 +46,12 @@ app.use((_, res) => res.status(404).json({ error: 'Not found' }));
 // ── Error handler ──────────────────────────────────────────
 app.use((err, _req, res, _next) => {
   console.error(err);
-  
-  // Handle Zod validation errors
+
   if (err instanceof ZodError) {
     const messages = err.errors.map(e => `${e.path.join('.')}: ${e.message}`).join('; ');
     return res.status(400).json({ error: `Validation error: ${messages}` });
   }
-  
+
   res.status(err.status || 500).json({ error: err.message || 'Server error' });
 });
 

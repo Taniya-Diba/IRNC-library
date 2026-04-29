@@ -1,36 +1,42 @@
 import { Router } from 'express';
-import supabase from '../db/supabase.js';
-import { requireAuth } from '../middleware/auth.js';
+import { supabaseAdmin } from '../db/supabase.js';
+import { requireAuth, requireAdmin } from '../middleware/auth.js';
 
 const router = Router();
 
-router.get('/', requireAuth, async (req, res, next) => {
+router.get('/', requireAuth, requireAdmin, async (req, res, next) => {
   try {
-    const [books, loansOut, overdue, borrowers] = await Promise.all([
-      supabase.from('books').select('id', { count: 'exact', head: true }),
-      supabase.from('loans').select('id', { count: 'exact', head: true }).eq('status', 'out'),
-      supabase.from('overdue_loans').select('*'),
-      supabase.from('borrowers').select('id', { count: 'exact', head: true }),
-    ]);
+    const [totalBooks, booksOut, booksAvailable, booksOverdue, booksLocked, totalMembers, overdue] =
+      await Promise.all([
+        supabaseAdmin.from('books').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('books').select('id', { count: 'exact', head: true }).eq('status', 'out'),
+        supabaseAdmin.from('books').select('id', { count: 'exact', head: true }).eq('status', 'available'),
+        supabaseAdmin.from('books').select('id', { count: 'exact', head: true }).eq('status', 'overdue'),
+        supabaseAdmin.from('books').select('id', { count: 'exact', head: true }).eq('status', 'locked'),
+        supabaseAdmin.from('users').select('id', { count: 'exact', head: true }).eq('role', 'member').eq('is_active', true),
+        supabaseAdmin.from('overdue_loans').select('*'),
+      ]);
 
-    const genreData = await supabase
+    const catData = await supabaseAdmin
       .from('books')
-      .select('genre')
-      .not('genre', 'is', null);
+      .select('category')
+      .not('category', 'is', null);
 
-    const genreCounts = {};
-    (genreData.data || []).forEach(b => {
-      genreCounts[b.genre] = (genreCounts[b.genre] || 0) + 1;
+    const categoryBreakdown = {};
+    (catData.data || []).forEach(b => {
+      categoryBreakdown[b.category] = (categoryBreakdown[b.category] || 0) + 1;
     });
 
     res.json({
-      total_books:     books.count     || 0,
-      books_out:       loansOut.count  || 0,
-      books_in:        (books.count || 0) - (loansOut.count || 0),
-      overdue_count:   overdue.data?.length || 0,
-      total_borrowers: borrowers.count || 0,
-      overdue_loans:   overdue.data || [],
-      genre_breakdown: genreCounts,
+      total_books:        totalBooks.count    || 0,
+      books_out:          booksOut.count      || 0,
+      books_available:    booksAvailable.count || 0,
+      books_overdue:      booksOverdue.count  || 0,
+      books_locked:       booksLocked.count   || 0,
+      total_members:      totalMembers.count  || 0,
+      overdue_count:      overdue.data?.length || 0,
+      overdue_loans:      overdue.data || [],
+      category_breakdown: categoryBreakdown,
     });
   } catch (err) { next(err); }
 });
