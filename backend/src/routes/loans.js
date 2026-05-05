@@ -65,6 +65,22 @@ router.post('/', requireAuth, async (req, res, next) => {
     const body = CheckoutSchema.parse(req.body);
     const userId = req.user.id;
 
+    // Validate due date is not in the past
+    if (body.due_date) {
+      const due = new Date(body.due_date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (due < today) {
+        return res.status(400).json({ error: 'Due date must be today or in the future' });
+      }
+
+      const maxDate = new Date();
+      maxDate.setDate(maxDate.getDate() + 90);
+      if (due > maxDate) {
+        return res.status(400).json({ error: 'Loan period cannot exceed 90 days' });
+      }
+    }
+
     // Check book exists and is available
     const { data: book, error: bookError } = await supabaseAdmin
       .from('books')
@@ -101,6 +117,19 @@ router.post('/', requireAuth, async (req, res, next) => {
       return res.status(409).json({ error: 'You already have this book checked out' });
     }
 
+    // Enforce maximum 5 active loans per user
+    const { count } = await supabaseAdmin
+      .from('loans')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .in('status', ['out', 'overdue']);
+
+    if (count >= 5) {
+      return res.status(409).json({
+        error: 'You have reached the maximum of 5 borrowed books at once'
+      });
+    }
+
     // Create the loan
     const { data: loan, error: loanError } = await supabaseAdmin
       .from('loans')
@@ -132,7 +161,6 @@ router.post('/', requireAuth, async (req, res, next) => {
 // PATCH /api/loans/:id/return — members can return their own; admin can return any
 router.patch('/:id/return', requireAuth, async (req, res, next) => {
   try {
-    // Members can only return their own loans
     if (req.user.role !== 'admin') {
       const { data: loanCheck } = await supabaseAdmin
         .from('loans')

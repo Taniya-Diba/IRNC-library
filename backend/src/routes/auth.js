@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import rateLimit from 'express-rate-limit';
 import { supabaseAdmin, supabaseClient } from '../db/supabase.js';
 import { requireAuth } from '../middleware/auth.js';
 
@@ -24,14 +25,25 @@ const RefreshSchema = z.object({
   refresh_token: z.string().min(1)
 });
 
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many login attempts. Please wait 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many registration attempts. Please wait an hour.' }
+});
+
 // POST /api/auth/register
-// Creates Supabase Auth account + public.users profile.
-// Atomic: if profile insert fails, auth account is deleted.
-router.post('/register', async (req, res, next) => {
+router.post('/register', registerLimiter, async (req, res, next) => {
   try {
     const body = RegisterSchema.parse(req.body);
 
-    // Check membership ID uniqueness BEFORE touching Auth
     const { data: existingMembership } = await supabaseAdmin
       .from('users')
       .select('id')
@@ -44,7 +56,6 @@ router.post('/register', async (req, res, next) => {
       });
     }
 
-    // Check email uniqueness BEFORE touching Auth
     const { data: existingEmail } = await supabaseAdmin
       .from('users')
       .select('id')
@@ -57,7 +68,6 @@ router.post('/register', async (req, res, next) => {
       });
     }
 
-    // Step 1: Create Supabase Auth user
     const { data: authData, error: authError } =
       await supabaseAdmin.auth.admin.createUser({
         email:         body.email,
@@ -72,7 +82,6 @@ router.post('/register', async (req, res, next) => {
       throw authError;
     }
 
-    // Step 2: Insert public.users profile
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('users')
       .insert({
@@ -87,12 +96,10 @@ router.post('/register', async (req, res, next) => {
       .single();
 
     if (profileError) {
-      // Roll back — delete the Auth user to avoid orphaned accounts
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
       throw profileError;
     }
 
-    // Step 3: Sign in to get a real session token
     const { data: signInData, error: signInError } =
       await supabaseClient.auth.signInWithPassword({
         email:    body.email,
@@ -100,7 +107,6 @@ router.post('/register', async (req, res, next) => {
       });
 
     if (signInError) {
-      // Registration succeeded but session creation failed — not critical
       return res.status(201).json({
         message: 'Registration successful. Please log in.',
         user: {
@@ -138,7 +144,7 @@ router.post('/register', async (req, res, next) => {
 });
 
 // POST /api/auth/login
-router.post('/login', async (req, res, next) => {
+router.post('/login', loginLimiter, async (req, res, next) => {
   try {
     const body = LoginSchema.parse(req.body);
 
@@ -188,13 +194,13 @@ router.post('/login', async (req, res, next) => {
 });
 
 // POST /api/auth/logout
-router.post('/logout', requireAuth, async (req, res, next) => {
+router.post('/logout', requireAuth, async (req, res) => {
   try {
-    const token = req.headers.authorization.slice(7);
-    await supabaseClient.auth.admin.signOut(token);
+    await supabaseAdmin.auth.admin.signOut(req.user.auth_id);
     res.json({ message: 'Logged out successfully' });
   } catch (err) {
-    next(err);
+    // Don't fail logout — client should clear token regardless
+    res.json({ message: 'Logged out' });
   }
 });
 

@@ -1,7 +1,6 @@
 import { supabaseAdmin, supabaseClient } from '../db/supabase.js';
 
 // requireAuth — verifies Supabase session token, attaches user to req
-// Use on any route that requires login (member OR admin)
 export async function requireAuth(req, res, next) {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {
@@ -14,7 +13,13 @@ export async function requireAuth(req, res, next) {
       await supabaseClient.auth.getUser(token);
 
     if (authError || !authUser) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
+      const isExpired = authError?.message?.toLowerCase().includes('expired') ||
+                        authError?.status === 401;
+      console.warn(`[Auth] ${isExpired ? 'Expired' : 'Invalid'} token from ${req.ip}`);
+      return res.status(401).json({
+        error: isExpired ? 'Token expired' : 'Invalid token',
+        code:  isExpired ? 'TOKEN_EXPIRED' : 'TOKEN_INVALID'
+      });
     }
 
     const { data: profile, error: profileError } = await supabaseAdmin
@@ -50,7 +55,6 @@ export function requireAdmin(req, res, next) {
 }
 
 // optionalAuth — attaches user if token present, continues if not
-// Use on public routes that behave differently when logged in
 export async function optionalAuth(req, res, next) {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {

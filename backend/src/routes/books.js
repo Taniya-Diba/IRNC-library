@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { supabaseAdmin } from '../db/supabase.js';
-import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { requireAuth, requireAdmin, optionalAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -18,7 +18,6 @@ const BookSchema = z.object({
   back_cover_image_path: z.string().trim().optional(),
   pdf_path:              z.string().trim().optional(),
   notes:                 z.string().trim().optional()
-  // status is NOT here — managed by trigger and lock/unlock endpoints
 });
 
 const VALID_STATUSES = ['available', 'out', 'overdue', 'locked'];
@@ -42,7 +41,19 @@ router.get('/', async (req, res, next) => {
 
     const { data, error, count } = await query;
     if (error) throw error;
-    res.json({ data, total: count, page: Number(page), limit: Number(limit) });
+
+    const booksWithUrls = (data || []).map(book => {
+      let coverUrl = null;
+      if (book.cover_image_path) {
+        const { data: urlData } = supabaseAdmin.storage
+          .from('book-covers')
+          .getPublicUrl(book.cover_image_path);
+        coverUrl = urlData.publicUrl;
+      }
+      return { ...book, cover_image_url: coverUrl };
+    });
+
+    res.json({ data: booksWithUrls, total: count, page: Number(page), limit: Number(limit) });
   } catch (err) { next(err); }
 });
 
@@ -59,16 +70,43 @@ router.get('/nfc/:nfcId', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// GET /api/books/:id
-router.get('/:id', async (req, res, next) => {
+// GET /api/books/:id — public, authenticated users also receive signed PDF URL
+router.get('/:id', optionalAuth, async (req, res, next) => {
   try {
-    const { data, error } = await supabaseAdmin
+    const { data: book, error } = await supabaseAdmin
       .from('books')
       .select('*')
       .eq('id', req.params.id)
       .single();
     if (error) return res.status(404).json({ error: 'Book not found' });
-    res.json(data);
+
+    let pdfUrl = null;
+    if (book.pdf_path && req.user) {
+      const { getSignedUrl } = await import('../middleware/upload.js');
+      pdfUrl = await getSignedUrl('book-pdfs', book.pdf_path, 3600);
+    }
+
+    let coverUrl = null;
+    let backCoverUrl = null;
+    if (book.cover_image_path) {
+      const { data: urlData } = supabaseAdmin.storage
+        .from('book-covers')
+        .getPublicUrl(book.cover_image_path);
+      coverUrl = urlData.publicUrl;
+    }
+    if (book.back_cover_image_path) {
+      const { data: urlData } = supabaseAdmin.storage
+        .from('book-back-covers')
+        .getPublicUrl(book.back_cover_image_path);
+      backCoverUrl = urlData.publicUrl;
+    }
+
+    res.json({
+      ...book,
+      cover_image_url:      coverUrl,
+      back_cover_image_url: backCoverUrl,
+      pdf_url:              pdfUrl
+    });
   } catch (err) { next(err); }
 });
 
@@ -165,14 +203,46 @@ router.patch('/:id/unlock', requireAuth, requireAdmin, async (req, res, next) =>
   } catch (err) { next(err); }
 });
 
-// DELETE /api/books/:id — admin only
+// DELETE /api/books/:id — admin only, cleans up storage files before deleting
 router.delete('/:id', requireAuth, requireAdmin, async (req, res, next) => {
   try {
-    const { error } = await supabaseAdmin
+    const { data: activeLoans } = await supabaseAdmin
+      .from('loans')
+      .select('id')
+      .eq('book_id', req.params.id)
+      .in('status', ['out', 'overdue']);
+
+    if (activeLoans?.length > 0) {
+      return res.status(409).json({
+        error: 'Cannot delete a book that is currently checked out. Return the book first.'
+      });
+    }
+
+    const { data: book, error: fetchError } = await supabaseAdmin
+      .from('books')
+      .select('id, title, cover_image_path, back_cover_image_path, pdf_path')
+      .eq('id', req.params.id)
+      .single();
+
+    if (fetchError || !book) {
+      return res.status(404).json({ error: 'Book not found' });
+    }
+
+    const { deleteFromStorage } = await import('../middleware/upload.js');
+
+    await Promise.allSettled([
+      deleteFromStorage('book-covers',      book.cover_image_path),
+      deleteFromStorage('book-back-covers', book.back_cover_image_path),
+      deleteFromStorage('book-pdfs',        book.pdf_path)
+    ]);
+
+    const { error: deleteError } = await supabaseAdmin
       .from('books')
       .delete()
       .eq('id', req.params.id);
-    if (error) throw error;
+
+    if (deleteError) throw deleteError;
+
     res.status(204).send();
   } catch (err) { next(err); }
 });

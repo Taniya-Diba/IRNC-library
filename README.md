@@ -59,7 +59,29 @@ irnc-library/
 2. Go to SQL Editor → paste `database/schema.sql` → Run
 3. Optionally run `database/seed.sql` for 20 sample books
 
-### 2. Backend
+### 2. Supabase Storage Setup
+
+Before running the backend, create three storage buckets in your Supabase project:
+
+1. Go to Supabase dashboard → Storage → New bucket
+
+   **Bucket 1:**
+   - Name: `book-covers`
+   - Public: YES (toggle on)
+
+   **Bucket 2:**
+   - Name: `book-back-covers`
+   - Public: YES (toggle on)
+
+   **Bucket 3:**
+   - Name: `book-pdfs`
+   - Public: NO (keep private)
+
+2. For each bucket, go to Policies and add a policy that allows the service role to read and write (the backend service role key bypasses RLS automatically, so no explicit policy is needed for server-side uploads — Supabase handles this by default).
+
+3. The `book-pdfs` bucket is private. The backend generates signed URLs that expire after 1 hour for authenticated users.
+
+### 3. Backend
 
 ```bash
 cd backend
