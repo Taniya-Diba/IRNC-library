@@ -1,36 +1,30 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import './Modal.css';
 
-export default function Modal({ open, onClose, title, children, width = 520 }) {
+export default function Modal({ open, onClose, title, children, maxWidth = 560 }) {
+  const { t } = useTranslation();
+
   useEffect(() => {
     if (!open) return;
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', handler);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', handler);
-      document.body.style.overflow = '';
-    };
+    function onKey(e) { if (e.key === 'Escape') onClose(); }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
   if (!open) return null;
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop" onClick={onClose} role="dialog" aria-modal="true">
       <div
-        className="modal-box"
-        style={{ maxWidth: width }}
+        className="modal-box glass-strong"
+        style={{ maxWidth }}
         onClick={e => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
       >
         <div className="modal-header">
-          <h3>{title}</h3>
-          <button className="modal-close" onClick={onClose} aria-label="Close">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M18 6 6 18M6 6l12 12"/>
-            </svg>
+          <h3 className="modal-title">{title}</h3>
+          <button className="modal-close" onClick={onClose} aria-label={t('common.close')}>
+            ✕
           </button>
         </div>
         <div className="modal-body">{children}</div>

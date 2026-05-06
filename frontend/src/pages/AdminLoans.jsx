@@ -1,135 +1,136 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { loans as loansApi } from '../lib/api.js';
 import toast from 'react-hot-toast';
 import './AdminLoans.css';
 
-const STATUS_TABS = ['all', 'out', 'overdue', 'returned'];
+function fmt(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+const TABS = ['all', 'out', 'overdue', 'returned'];
 
 export default function AdminLoans() {
-  const [loanList, setLoanList]   = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [activeTab, setActiveTab] = useState('all');
-  const [returning, setReturning] = useState(null);
+  const { t } = useTranslation();
+  const [tab, setTab]         = useState('all');
+  const [loans, setLoans]     = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [returning, setReturning] = useState({});
 
-  async function load(status = '') {
+  useEffect(() => { load(); }, [tab]);
+
+  async function load() {
     setLoading(true);
     try {
-      const params = status && status !== 'all' ? { status } : {};
-      const data = await loansApi.list(params);
-      setLoanList(data);
-    } catch (err) {
-      toast.error('Failed to load loans');
+      const params = tab !== 'all' ? { status: tab } : {};
+      const d = await loansApi.list(params);
+      setLoans(Array.isArray(d) ? d : d?.loans || []);
+    } catch {
+      toast.error(t('errors.networkError'));
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => { load(activeTab); }, [activeTab]);
-
-  async function handleReturn(loan) {
-    setReturning(loan.id);
+  async function handleReturn(loanId) {
+    setReturning(r => ({ ...r, [loanId]: true }));
     try {
-      await loansApi.returnBook(loan.id);
-      toast.success(`"${loan.books?.title}" marked as returned`);
-      load(activeTab);
-    } catch (err) {
-      toast.error(err.message);
+      await loansApi.returnBook(loanId);
+      setLoans(ls => ls.map(l => l.id === loanId ? { ...l, status: 'returned', return_date: new Date().toISOString() } : l));
+      toast.success(t('admin.markReturned'));
+    } catch {
+      toast.error(t('errors.unknownError'));
     } finally {
-      setReturning(null);
+      setReturning(r => ({ ...r, [loanId]: false }));
     }
   }
 
-  const fmt = (d) => d
-    ? new Date(d).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
-    : '—';
-
-  const isOverdue = (loan) =>
-    loan.status === 'out' && loan.due_date && new Date(loan.due_date) < new Date();
+  const TAB_KEYS = {
+    all: 'admin.tabAll', out: 'admin.tabOut',
+    overdue: 'admin.tabOverdue', returned: 'admin.tabReturned'
+  };
 
   return (
-    <main className="page-content">
+    <div className="page-content">
       <div className="container">
-        <div className="loans-header">
-          <h1>All loans</h1>
-        </div>
+        <h1 style={{ marginBottom: 24 }}>{t('admin.loansPage')}</h1>
 
-        <div className="loans-tabs">
-          {STATUS_TABS.map(tab => (
+        {/* Tab bar */}
+        <div className="loans-tab-bar">
+          {TABS.map(tb => (
             <button
-              key={tab}
-              className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab)}
+              key={tb}
+              className={`btn btn-sm ${tab === tb ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setTab(tb)}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {t(TAB_KEYS[tb])}
             </button>
           ))}
         </div>
 
-        {loading ? (
-          <div style={{ display:'flex', justifyContent:'center', paddingTop: 60 }}>
-            <div className="spinner" />
-          </div>
-        ) : loanList.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state-icon">📋</div>
-            <h3>No loans found</h3>
-          </div>
-        ) : (
-          <div className="table-wrap">
-            <table className="loans-table">
-              <thead>
-                <tr>
-                  <th>Book</th>
-                  <th>Borrower</th>
-                  <th>Phone</th>
-                  <th>Checked out</th>
-                  <th>Due</th>
-                  <th>Returned</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loanList.map(loan => (
-                  <tr key={loan.id} className={isOverdue(loan) ? 'row-overdue' : ''}>
-                    <td>
-                      <Link to={`/book/${loan.book_id}`} className="table-link">
-                        {loan.books?.title || '—'}
-                      </Link>
-                    </td>
-                    <td>{loan.borrowers?.name || '—'}</td>
-                    <td>{loan.borrowers?.phone || '—'}</td>
-                    <td>{fmt(loan.checkout_date)}</td>
-                    <td className={isOverdue(loan) ? 'overdue-cell' : ''}>
-                      {fmt(loan.due_date)}
-                    </td>
-                    <td>{fmt(loan.return_date)}</td>
-                    <td>
-                      <span className={`badge badge-${isOverdue(loan) ? 'overdue' : loan.status}`}>
-                        {isOverdue(loan) ? 'overdue' : loan.status}
-                      </span>
-                    </td>
-                    <td>
-                      {(loan.status === 'out' || loan.status === 'overdue') && (
-                        <button
-                          className="btn btn-success btn-sm"
-                          onClick={() => handleReturn(loan)}
-                          disabled={returning === loan.id}
-                        >
-                          {returning === loan.id
-                            ? <span className="spinner" style={{width:13,height:13}} />
-                            : 'Return'}
-                        </button>
-                      )}
-                    </td>
+        <div className="glass admin-section loans-table-section">
+          {loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}>
+              <div className="spinner" style={{ width: 32, height: 32 }} />
+            </div>
+          ) : loans.length === 0 ? (
+            <div className="empty-state" style={{ padding: '32px 0' }}>
+              <div className="empty-state-icon">📋</div>
+              <p>{t('common.noResults')}</p>
+            </div>
+          ) : (
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>{t('admin.colBook')}</th>
+                    <th>{t('admin.colBorrower')}</th>
+                    <th>{t('admin.colMemberId')}</th>
+                    <th>{t('admin.colPhone')}</th>
+                    <th>{t('admin.colCheckedOut')}</th>
+                    <th>{t('admin.colDue')}</th>
+                    <th>{t('admin.colReturned')}</th>
+                    <th>{t('admin.colStatus')}</th>
+                    <th>{t('admin.colAction')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {loans.map(loan => (
+                    <tr
+                      key={loan.id}
+                      className={loan.status === 'overdue' ? 'loan-overdue-row' : ''}
+                    >
+                      <td>{loan.book?.title || '—'}</td>
+                      <td>{loan.user?.full_name || loan.borrower_name || '—'}</td>
+                      <td>{loan.user?.membership_id || '—'}</td>
+                      <td>{loan.user?.phone || '—'}</td>
+                      <td>{fmt(loan.checkout_date || loan.created_at)}</td>
+                      <td>{fmt(loan.due_date)}</td>
+                      <td>{fmt(loan.return_date)}</td>
+                      <td><span className={`badge badge-${loan.status}`}>{t(`status.${loan.status}`)}</span></td>
+                      <td>
+                        {(loan.status === 'out' || loan.status === 'overdue') && (
+                          <button
+                            className="btn btn-sm btn-secondary"
+                            disabled={returning[loan.id]}
+                            onClick={() => handleReturn(loan.id)}
+                          >
+                            {returning[loan.id]
+                              ? <><span className="spinner" />{t('admin.returning')}</>
+                              : t('admin.return')
+                            }
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

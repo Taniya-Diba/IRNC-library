@@ -1,0 +1,4 @@
+/* RegisterPage inherits from LoginPage.css — only page-specific overrides here */
+.auth-register-wide {
+  max-width: 480px;
+}

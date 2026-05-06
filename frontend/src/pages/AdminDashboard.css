@@ -1,4 +1,4 @@
-.dash-header {
+.admin-page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -6,78 +6,148 @@
   gap: 16px;
   flex-wrap: wrap;
 }
-.dash-actions { display: flex; gap: 10px; }
 
-.stats-grid {
+.admin-quick-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 16px;
-  margin-bottom: 36px;
+  margin-bottom: 28px;
 }
 
-.dash-grid {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 24px;
-  align-items: start;
+.admin-section {
+  border-radius: var(--radius-xl);
+  padding: 24px 28px;
+  margin-bottom: 24px;
 }
 
-.dash-section {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-}
-.dash-section h2 {
-  font-size: 16px;
+.admin-section-header {
   margin-bottom: 16px;
+}
+
+.admin-overdue-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: var(--status-overdue-bg);
+  color: var(--status-overdue);
+  border: 1px solid var(--status-overdue-border);
+  font-size: 11px;
+  font-weight: 700;
+  margin-inline-start: 8px;
+}
+
+.admin-all-good {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--status-available);
+  font-size: 14px;
+  padding: 12px 0;
+}
+
+.admin-all-good span {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.admin-table th {
+  text-align: start;
+  padding: 8px 12px;
+  color: var(--text-subtle);
+  font-weight: 500;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.50);
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 10px 12px;
+  color: var(--text-muted);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  vertical-align: middle;
+}
+
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-overdue-row td {
+  border-inline-start: 2px solid var(--status-overdue-dot);
+}
+
+.admin-overdue-row td:not(:first-child) {
+  border-inline-start: none;
+}
+
+.admin-overdue-date {
+  color: var(--status-overdue);
+  font-weight: 500;
+}
+
+.admin-book-link {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.admin-book-link:hover {
+  text-decoration: underline;
+}
+
+.admin-category-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-cat-row {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.overdue-badge {
-  background: var(--color-danger-light);
-  color: var(--color-danger);
+.admin-cat-name {
+  font-size: 13px;
+  color: var(--text-muted);
+  min-width: 110px;
+  flex-shrink: 0;
+}
+
+.admin-cat-bar-wrap {
+  flex: 1;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.admin-cat-bar {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.admin-cat-count {
   font-size: 12px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-}
-
-.overdue-days { font-size: 13px; }
-.days-past    { color: var(--color-danger); font-weight: 600; }
-
-.loan-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.loan-table th {
-  text-align: left; padding: 10px 14px;
-  font-size: 12px; font-weight: 600;
-  color: var(--color-text-muted);
-  background: var(--color-surface-2);
-  border-bottom: 1px solid var(--color-border);
-}
-.loan-table td {
-  padding: 11px 14px;
-  border-bottom: 1px solid var(--color-border);
-}
-.loan-table tr:last-child td { border-bottom: none; }
-.loan-table tbody tr:hover   { background: var(--color-surface-2); }
-.table-link { color: var(--color-accent); }
-.table-link:hover { text-decoration: underline; }
-
-/* Genre chart */
-.genre-section { }
-.genre-list    { display: flex; flex-direction: column; gap: 12px; }
-.genre-row     { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-.genre-name    { width: 90px; color: var(--color-text-muted); flex-shrink: 0; }
-.genre-bar-wrap { flex: 1; height: 8px; background: var(--color-surface-2); border-radius: 99px; overflow: hidden; }
-.genre-bar     { height: 100%; background: var(--color-accent); border-radius: 99px; transition: width 0.4s ease; }
-.genre-count   { width: 28px; text-align: right; font-weight: 600; color: var(--color-text); }
-
-@media (max-width: 900px) {
-  .dash-grid { grid-template-columns: 1fr; }
-}
-@media (max-width: 480px) {
-  .stats-grid { grid-template-columns: 1fr 1fr; }
-  .dash-actions .btn:last-child { display: none; }
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 28px;
+  text-align: end;
 }

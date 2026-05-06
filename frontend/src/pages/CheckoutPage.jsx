@@ -1,233 +1,250 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { useSearchParams, useLocation, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { books as booksApi, loans as loansApi } from '../lib/api.js';
+import { useAuth } from '../hooks/useAuth.jsx';
+import { getCategoryGradient } from '../lib/categoryColors.js';
 import toast from 'react-hot-toast';
 import './CheckoutPage.css';
 
+function fmt(dateStr) {
+  if (!dateStr) return '—';
+  return new Date(dateStr).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function defaultDueDate() {
+  const d = new Date();
+  d.setDate(d.getDate() + 14);
+  return d.toISOString().split('T')[0];
+}
+
+function BookStrip({ book, t }) {
+  return (
+    <div className="checkout-book-strip glass">
+      <div
+        className="checkout-mini-cover"
+        style={{ background: book.cover_image_url ? undefined : getCategoryGradient(book.category) }}
+      >
+        {book.cover_image_url
+          ? <img src={book.cover_image_url} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          : <span className="checkout-mini-initial">{book.title?.charAt(0)}</span>
+        }
+        <div className="book-cover-shine" />
+      </div>
+      <div className="checkout-book-info">
+        <p className="checkout-book-title">{book.title}</p>
+        <p className="checkout-book-author">{book.author}</p>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+          <span className="checkout-tag">{book.category}</span>
+          {book.shelf_location && <span className="checkout-tag">{book.shelf_location}</span>}
+          <span className={`badge badge-${book.status}`}>{t(`status.${book.status}`)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CheckoutPage() {
-  const [searchParams]          = useSearchParams();
-  const bookId                  = searchParams.get('bookId');
-  const navigate                = useNavigate();
+  const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const bookId = searchParams.get('bookId');
 
   const [book, setBook]         = useState(null);
-  const [bookLoading, setBL]    = useState(true);
-  const [submitting, setSub]    = useState(false);
-  const [done, setDone]         = useState(false);
+  const [loading, setLoading]   = useState(!!bookId);
+  const [notFound, setNotFound] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess]   = useState(null);
 
-  const defaultDue = new Date(Date.now() + 14 * 86400 * 1000).toISOString().slice(0, 10);
-
-  const [form, setForm] = useState({
-    borrower_name:  '',
-    borrower_phone: '',
-    borrower_email: '',
-    due_date:       defaultDue,
-    notes:          '',
-  });
+  // Form fields
+  const [fullName, setFullName] = useState('');
+  const [dueDate, setDueDate]   = useState(defaultDueDate());
+  const [notes, setNotes]       = useState('');
 
   useEffect(() => {
-    if (!bookId) { setBL(false); return; }
+    if (user) setFullName(user.full_name || '');
+  }, [user]);
+
+  useEffect(() => {
+    if (!bookId) return;
+    setLoading(true);
     booksApi.getById(bookId)
       .then(setBook)
-      .catch(() => setBook(null))
-      .finally(() => setBL(false));
+      .catch(err => { if (err.status === 404) setNotFound(true); })
+      .finally(() => setLoading(false));
   }, [bookId]);
-
-  function handleChange(e) {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }));
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!form.borrower_name.trim()) { toast.error('Please enter your name'); return; }
-    setSub(true);
+    setSubmitting(true);
     try {
-      await loansApi.checkout({ book_id: bookId, ...form });
-      setDone(true);
-      toast.success('Book checked out successfully!');
+      const result = await loansApi.checkout({ book_id: bookId, due_date: dueDate, notes });
+      setSuccess({ dueDate, bookTitle: book.title });
     } catch (err) {
-      toast.error(err.message || 'Something went wrong');
+      toast.error(err.message || t('errors.unknownError'));
     } finally {
-      setSub(false);
+      setSubmitting(false);
     }
   }
 
-  // Success screen
-  if (done) return (
-    <main className="page-content">
-      <div className="container checkout-wrap">
-        <div className="checkout-success">
-          <div className="success-icon">✓</div>
-          <h2>Enjoy the book!</h2>
-          <p className="success-book-title">{book?.title}</p>
-          {form.due_date && (
-            <p className="success-due">
-              Please return it by{' '}
-              <strong>{(() => { const [y,m,d] = form.due_date.split('-'); return `${m}/${d}/${y}`; })()}</strong>
-            </p>
-          )}
-          <Link to="/" className="btn btn-secondary" style={{ marginTop: 24 }}>
-            Back to catalogue
-          </Link>
+  const fromState = location.pathname + location.search;
+
+  // STATE 1 — No bookId
+  if (!bookId) {
+    return (
+      <div className="page-content checkout-center">
+        <div className="glass-strong checkout-card">
+          <div className="checkout-icon">📱</div>
+          <h2>{t('checkout.scanTitle')}</h2>
+          <p>{t('checkout.scanHint')}</p>
+          <Link to="/" className="btn btn-secondary">{t('common.backToCatalogue')}</Link>
         </div>
       </div>
-    </main>
-  );
+    );
+  }
 
-  if (bookLoading) return (
-    <main className="page-content">
-      <div className="container checkout-wrap">
-        <div style={{ display:'flex', justifyContent:'center', paddingTop: 60 }}>
-          <div className="spinner" />
+  // STATE 2 — Loading
+  if (loading) {
+    return (
+      <div className="page-content checkout-center">
+        <div className="glass checkout-card">
+          <div className="spinner" style={{ width: 32, height: 32 }} />
         </div>
       </div>
-    </main>
-  );
+    );
+  }
 
-  if (!book && bookId) return (
-    <main className="page-content">
-      <div className="container checkout-wrap">
-        <div className="empty-state">
-          <div className="empty-state-icon">📖</div>
-          <h3>Book not found</h3>
-          <Link to="/" className="btn btn-secondary" style={{ marginTop: 16 }}>Back to catalogue</Link>
+  // STATE 3 — Not found
+  if (notFound || !book) {
+    return (
+      <div className="page-content checkout-center">
+        <div className="glass-strong checkout-card">
+          <div className="checkout-icon">🔍</div>
+          <h2>{t('checkout.notFoundTitle')}</h2>
+          <p>{t('checkout.notFoundHint')}</p>
+          <Link to="/" className="btn btn-secondary">{t('common.backToCatalogue')}</Link>
         </div>
       </div>
-    </main>
-  );
+    );
+  }
 
-  if (!bookId) return (
-    <main className="page-content">
-      <div className="container checkout-wrap">
-        <div className="empty-state">
-          <div className="empty-state-icon">📱</div>
-          <h3>Scan a book to check it out</h3>
-          <p>Tap the NFC sticker on the back cover of the book with your phone.</p>
+  // STATE 4 — Locked
+  if (book.status === 'locked') {
+    return (
+      <div className="page-content checkout-center">
+        <div className="glass-strong checkout-card">
+          <div className="checkout-icon">🔒</div>
+          <h2>{t('checkout.lockedTitle')}</h2>
+          <p>{t('checkout.lockedHint')}</p>
+          <Link to="/" className="btn btn-secondary">{t('common.backToCatalogue')}</Link>
         </div>
       </div>
-    </main>
-  );
+    );
+  }
 
-  if (book.status === 'out' || book.status === 'overdue') return (
-    <main className="page-content">
-      <div className="container checkout-wrap">
-        <div className="checkout-card card">
-          <div className="checkout-book-info">
-            {book.cover_url && <img src={book.cover_url} alt={book.title} className="checkout-cover" />}
-            <div>
-              <h2>{book.title}</h2>
-              <p className="checkout-author">by {book.author}</p>
-            </div>
-          </div>
-          <div className="empty-state" style={{ padding: '32px 0' }}>
-            <div className="empty-state-icon">⏳</div>
-            <h3>This book is currently checked out</h3>
-            <p>Check back later or browse other available books.</p>
-            <Link to="/" className="btn btn-primary" style={{ marginTop: 16 }}>Browse catalogue</Link>
-          </div>
+  // STATE 5 — Out / Overdue
+  if (book.status === 'out' || book.status === 'overdue') {
+    return (
+      <div className="page-content checkout-center">
+        <div className="glass-strong checkout-card">
+          <BookStrip book={book} t={t} />
+          <div className="checkout-icon">⏳</div>
+          <h2>{t('checkout.alreadyOutTitle')}</h2>
+          <p>{t('checkout.alreadyOutHint')}</p>
+          <Link to="/" className="btn btn-secondary">{t('common.backToCatalogue')}</Link>
         </div>
       </div>
-    </main>
-  );
+    );
+  }
 
-  return (
-    <main className="page-content">
-      <div className="container checkout-wrap">
-        <div className="checkout-card card">
+  // STATE 8 — Success
+  if (success) {
+    return (
+      <div className="page-content checkout-center">
+        <div className="glass-strong checkout-card checkout-success">
+          <div className="checkout-success-check">✓</div>
+          <h2>{t('checkout.successTitle')}</h2>
+          <p><em>{success.bookTitle}</em></p>
+          <p>{t('checkout.successDue')} <strong>{fmt(success.dueDate)}</strong></p>
+          <Link to="/" className="btn btn-secondary">{t('checkout.successBack')}</Link>
+        </div>
+      </div>
+    );
+  }
 
-          <div className="checkout-book-info">
-            {book.cover_url && (
-              <img src={book.cover_url} alt={book.title} className="checkout-cover" />
-            )}
-            <div>
-              <p className="checkout-label">You are checking out</p>
-              <h2 className="checkout-title">{book.title}</h2>
-              <p className="checkout-author">by {book.author}</p>
-              {book.shelf_location && (
-                <p className="checkout-shelf">Shelf: {book.shelf_location}</p>
-              )}
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="checkout-form">
-            <div className="form-group">
-              <label className="form-label" htmlFor="borrower_name">Your name <span className="required">*</span></label>
-              <input
-                id="borrower_name"
-                name="borrower_name"
-                className="form-input"
-                value={form.borrower_name}
-                onChange={handleChange}
-                placeholder="Full name"
-                required
-                autoFocus
-              />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label" htmlFor="borrower_phone">Phone (optional)</label>
-                <input
-                  id="borrower_phone"
-                  name="borrower_phone"
-                  className="form-input"
-                  value={form.borrower_phone}
-                  onChange={handleChange}
-                  placeholder="+90 555 000 0000"
-                  type="tel"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="borrower_email">Email (optional)</label>
-                <input
-                  id="borrower_email"
-                  name="borrower_email"
-                  className="form-input"
-                  value={form.borrower_email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  type="email"
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="due_date">Return by</label>
-              <input
-                id="due_date"
-                name="due_date"
-                className="form-input"
-                type="date"
-                value={form.due_date || defaultDue}
-                onChange={handleChange}
-                min={new Date().toISOString().slice(0, 10)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="notes">Notes (optional)</label>
-              <textarea
-                id="notes"
-                name="notes"
-                className="form-textarea"
-                value={form.notes}
-                onChange={handleChange}
-                placeholder="Any notes…"
-                rows={2}
-              />
-            </div>
-
-            <div className="checkout-actions">
-              <Link to={`/book/${book.id}`} className="btn btn-secondary">
-                Cancel
+  // STATE 6 — Not logged in, book available
+  if (!user) {
+    return (
+      <div className="page-content checkout-center">
+        <div className="glass-strong checkout-card">
+          <BookStrip book={book} t={t} />
+          <div className="checkout-login-prompt">
+            <h3>{t('checkout.loginRequired')}</h3>
+            <p>{t('checkout.loginRequiredHint')}</p>
+            <div className="checkout-auth-btns">
+              <Link to="/login" state={{ from: fromState }} className="btn btn-primary">
+                {t('checkout.loginBtn')}
               </Link>
-              <button type="submit" className="btn btn-primary btn-lg" disabled={submitting}>
-                {submitting ? <><span className="spinner" style={{width:16,height:16}} /> Checking out…</> : 'Confirm checkout'}
-              </button>
+              <Link to="/register" state={{ from: fromState }} className="btn btn-secondary">
+                {t('checkout.registerBtn')}
+              </Link>
             </div>
-          </form>
-
+          </div>
         </div>
       </div>
-    </main>
+    );
+  }
+
+  // STATE 7 — Logged in, book available
+  return (
+    <div className="page-content checkout-center">
+      <div className="glass-strong checkout-card checkout-form-card">
+        <BookStrip book={book} t={t} />
+        <form onSubmit={handleSubmit} className="checkout-form">
+          <div className="form-group">
+            <label className="form-label">{t('checkout.fullName')}</label>
+            <input
+              className="form-input"
+              value={fullName}
+              onChange={e => setFullName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">{t('checkout.membershipId')}</label>
+            <div className="checkout-readonly-chip">{user.membership_id || '—'}</div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">{t('checkout.dueDate')}</label>
+            <input
+              className="form-input"
+              type="date"
+              value={dueDate}
+              min={new Date().toISOString().split('T')[0]}
+              onChange={e => setDueDate(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">{t('checkout.notesPlaceholder')} <span style={{color:'var(--text-subtle)'}}>({t('common.optional')})</span></label>
+            <textarea
+              className="form-textarea"
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <div className="checkout-form-btns">
+            <Link to={`/book/${bookId}`} className="btn btn-secondary">{t('checkout.cancel')}</Link>
+            <button type="submit" className="btn btn-primary" disabled={submitting}>
+              {submitting ? <><span className="spinner" />{t('checkout.submitting')}</> : t('checkout.confirm')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

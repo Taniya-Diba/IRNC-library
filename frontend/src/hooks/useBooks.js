@@ -28,3 +28,5 @@ export function useBooks(initialParams = {}) {
 
   return { data, total, loading, error, refetch: fetch, setParams };
 }
+
+export default useBooks;

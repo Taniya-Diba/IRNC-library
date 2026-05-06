@@ -1,44 +1,44 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { getCategoryGradient } from '../../lib/categoryColors.js';
 import './BookCard.css';
 
-const GENRE_COLORS = {
-  Fiction:     '#8b5cf6',
-  History:     '#d97706',
-  Technology:  '#2563eb',
-  Science:     '#0891b2',
-  Philosophy:  '#059669',
-  Psychology:  '#db2777',
-  Business:    '#ea580c',
-  Biography:   '#7c3aed',
-};
-
 export default function BookCard({ book }) {
-  const genreColor = GENRE_COLORS[book.genre] || '#6b7280';
+  const { t } = useTranslation();
+  const { id, title, author, translator, category, status, cover_image_url } = book;
+
+  const statusClass = `badge badge-${status}`;
+  const statusKey   = status === 'out' ? 'status.out'
+                    : status === 'overdue' ? 'status.overdue'
+                    : status === 'locked'  ? 'status.locked'
+                    : 'status.available';
 
   return (
-    <Link to={`/book/${book.id}`} className="book-card">
-      <div className="book-cover" style={{ '--genre-color': genreColor }}>
-        {book.cover_url ? (
-          <img src={book.cover_url} alt={book.title} loading="lazy" />
+    <Link to={`/book/${id}`} className="book-card glass">
+      {/* Cover */}
+      <div className="book-cover-container">
+        {cover_image_url ? (
+          <img src={cover_image_url} alt={title} loading="lazy" className="book-cover-img" />
         ) : (
-          <div className="book-cover-placeholder">
-            <span>{book.title.charAt(0)}</span>
+          <div
+            className="book-cover-placeholder"
+            style={{ background: getCategoryGradient(category) }}
+          >
+            <span className="book-cover-initial">{title?.charAt(0)?.toUpperCase()}</span>
           </div>
         )}
-        <div className={`book-status-dot ${book.status === 'in' ? 'dot-in' : 'dot-out'}`} />
+        <div className="book-cover-shine" />
       </div>
+
+      {/* Info */}
       <div className="book-card-body">
-        <p className="book-card-title">{book.title}</p>
-        <p className="book-card-author">{book.author}</p>
+        <p className="book-card-title">{title}</p>
+        <p className="book-card-author">{author}</p>
+        {translator && (
+          <p className="book-card-translator">{translator}</p>
+        )}
         <div className="book-card-footer">
-          {book.genre && (
-            <span className="book-genre-tag" style={{ color: genreColor, background: genreColor + '18' }}>
-              {book.genre}
-            </span>
-          )}
-          <span className={`badge badge-${book.status}`}>
-            {book.status === 'in' ? 'Available' : 'Out'}
-          </span>
+          <span className={statusClass}>{t(statusKey)}</span>
         </div>
       </div>
     </Link>

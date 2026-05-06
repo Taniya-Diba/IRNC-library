@@ -1,44 +1,22 @@
-.loans-header { margin-bottom: 20px; }
-
-.loans-tabs {
+.loans-tab-bar {
   display: flex;
-  gap: 4px;
+  gap: 8px;
   margin-bottom: 20px;
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 0;
+  flex-wrap: wrap;
 }
-.tab-btn {
-  padding: 8px 18px;
-  border: none;
-  background: none;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: all 0.15s;
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-}
-.tab-btn:hover  { color: var(--color-text); background: var(--color-surface-2); }
-.tab-btn.active { color: var(--color-accent); border-bottom-color: var(--color-accent); }
 
-.loans-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.loans-table th {
-  text-align: left; padding: 10px 14px;
-  font-size: 12px; font-weight: 600;
-  color: var(--color-text-muted);
-  background: var(--color-surface-2);
-  border-bottom: 1px solid var(--color-border);
-  white-space: nowrap;
+.loans-table-section {
+  border-radius: var(--radius-xl);
+  padding: 0;
+  overflow: hidden;
 }
-.loans-table td {
-  padding: 11px 14px;
-  border-bottom: 1px solid var(--color-border);
-  vertical-align: middle;
+
+.loan-overdue-row td:first-child {
+  border-inline-start: 3px solid var(--status-overdue-dot);
 }
-.loans-table tr:last-child td { border-bottom: none; }
-.loans-table tbody tr:hover   { background: var(--color-surface-2); }
-.row-overdue td:first-child   { border-left: 3px solid var(--color-danger); }
-.overdue-cell { color: var(--color-danger); font-weight: 600; }
-.table-link   { color: var(--color-accent); font-weight: 500; }
-.table-link:hover { text-decoration: underline; }
+
+.admin-section {
+  border-radius: var(--radius-xl);
+  padding: 24px 28px;
+  margin-bottom: 24px;
+}

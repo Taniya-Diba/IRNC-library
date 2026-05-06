@@ -1,58 +1,93 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth.jsx';
 import './Navbar.css';
 
 export default function Navbar() {
-  const { admin, logout } = useAuth();
+  const { t, i18n } = useTranslation();
+  const { user, logout, isAdmin, isMember } = useAuth();
   const navigate = useNavigate();
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await logout();
     navigate('/');
   }
 
+  function switchLang(lng) {
+    i18n.changeLanguage(lng);
+  }
+
+  const currentLang = i18n.language;
+
   return (
-    <header className="navbar">
-      <div className="container navbar-inner">
+    <nav className="navbar glass-strong">
+      <div className="navbar-inner container">
+        {/* Brand */}
         <Link to="/" className="navbar-brand">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-          </svg>
-          <span>IRNC Library</span>
+          <div className="navbar-icon" aria-hidden="true">📚</div>
+          <span className="navbar-title">IRNC Library</span>
         </Link>
 
-        <nav className="navbar-links">
+        {/* Center nav links (hidden on mobile) */}
+        <div className="navbar-links">
           <NavLink to="/" end className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            Catalogue
+            {t('nav.catalogue')}
           </NavLink>
-          {admin && (
+          {isMember() && (
+            <NavLink to="/profile" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+              {t('nav.myLoans')}
+            </NavLink>
+          )}
+          {isAdmin() && (
             <>
               <NavLink to="/admin" end className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-                Dashboard
+                {t('nav.dashboard')}
               </NavLink>
               <NavLink to="/admin/books" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-                Manage Books
+                {t('nav.manageBooks')}
               </NavLink>
               <NavLink to="/admin/loans" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-                Loans
+                {t('nav.loans')}
+              </NavLink>
+              <NavLink to="/admin/members" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+                {t('nav.members')}
               </NavLink>
             </>
           )}
-        </nav>
+        </div>
 
-        <div className="navbar-actions">
-          {admin ? (
-            <button onClick={handleLogout} className="btn btn-secondary btn-sm">
-              Sign out
+        {/* Right section */}
+        <div className="navbar-right">
+          {/* Language toggle */}
+          <div className="lang-toggle">
+            <button
+              className={`lang-btn${currentLang === 'en' ? ' active' : ''}`}
+              onClick={() => switchLang('en')}
+            >
+              EN
             </button>
+            <button
+              className={`lang-btn${currentLang === 'fa' ? ' active' : ''}`}
+              onClick={() => switchLang('fa')}
+            >
+              فا
+            </button>
+          </div>
+
+          {user ? (
+            <div className="navbar-user">
+              <span className="navbar-user-name">{user.full_name?.split(' ')[0] || user.email}</span>
+              <button className="btn btn-secondary btn-sm" onClick={handleLogout}>
+                {t('nav.signOut')}
+              </button>
+            </div>
           ) : (
-            <Link to="/admin/login" className="btn btn-secondary btn-sm">
-              Admin
+            <Link to="/login" className="btn btn-primary btn-sm">
+              {t('nav.signIn')}
             </Link>
           )}
         </div>
       </div>
-    </header>
+    </nav>
   );
 }

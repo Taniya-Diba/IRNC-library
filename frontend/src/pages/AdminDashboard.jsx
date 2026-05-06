@@ -1,162 +1,157 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { stats as statsApi, loans as loansApi } from '../lib/api.js';
+import { getCategoryColors } from '../lib/categoryColors.js';
 import StatCard from '../components/ui/StatCard.jsx';
-import toast    from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import './AdminDashboard.css';
 
-function OverdueRow({ loan, onReturn }) {
-  const [loading, setLoading] = useState(false);
-
-  async function handleReturn() {
-    setLoading(true);
-    try {
-      await loansApi.returnBook(loan.loan_id);
-      toast.success(`"${loan.title}" marked as returned`);
-      onReturn();
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const daysPast = loan.due_date
-    ? Math.floor((Date.now() - new Date(loan.due_date)) / 86400000)
-    : null;
-
-  return (
-    <tr>
-      <td>
-        <Link to={`/book/${loan.book_id}`} className="table-link">{loan.title}</Link>
-      </td>
-      <td>{loan.author}</td>
-      <td>{loan.borrower_name}</td>
-      <td>{loan.borrower_phone || '—'}</td>
-      <td>
-        <span className="overdue-days">
-          {loan.due_date ? new Date(loan.due_date).toLocaleDateString('en-GB') : '—'}
-          {daysPast > 0 && <span className="days-past"> ({daysPast}d overdue)</span>}
-        </span>
-      </td>
-      <td>
-        <button
-          className="btn btn-success btn-sm"
-          onClick={handleReturn}
-          disabled={loading}
-        >
-          {loading ? <span className="spinner" style={{width:13,height:13}} /> : 'Mark returned'}
-        </button>
-      </td>
-    </tr>
-  );
+function fmt(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 export default function AdminDashboard() {
-  const [data, setData]       = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
+  const [data, setData]         = useState(null);
+  const [overdue, setOverdue]   = useState([]);
+  const [returning, setReturning] = useState({});
+  const [loading, setLoading]   = useState(true);
 
-  async function load() {
+  useEffect(() => {
+    Promise.all([statsApi.get(), loansApi.overdue()])
+      .then(([s, ov]) => {
+        setData(s);
+        setOverdue(Array.isArray(ov) ? ov : ov?.loans || []);
+      })
+      .catch(() => toast.error(t('errors.networkError')))
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function handleReturn(loanId) {
+    setReturning(r => ({ ...r, [loanId]: true }));
     try {
-      const s = await statsApi.get();
-      setData(s);
-    } catch (err) {
-      toast.error('Failed to load dashboard data');
+      await loansApi.returnBook(loanId);
+      setOverdue(ov => ov.filter(l => l.id !== loanId));
+      if (data) setData(d => ({ ...d, overdue_count: Math.max(0, (d.overdue_count || 0) - 1) }));
+      toast.success(t('admin.markReturned'));
+    } catch {
+      toast.error(t('errors.unknownError'));
     } finally {
-      setLoading(false);
+      setReturning(r => ({ ...r, [loanId]: false }));
     }
   }
 
-  useEffect(() => { load(); }, []);
-
-  if (loading) return (
-    <main className="page-content">
-      <div className="container" style={{ display:'flex', justifyContent:'center', paddingTop: 60 }}>
-        <div className="spinner" />
-      </div>
-    </main>
-  );
-
-  const genres = Object.entries(data?.genre_breakdown || {})
-    .sort((a, b) => b[1] - a[1]);
+  const categoryBreakdown = data?.by_category || [];
+  const maxCatCount = Math.max(...categoryBreakdown.map(c => c.count || 0), 1);
 
   return (
-    <main className="page-content">
+    <div className="page-content">
       <div className="container">
-        <div className="dash-header">
-          <h1>Dashboard</h1>
-          <div className="dash-actions">
-            <Link to="/admin/books" className="btn btn-primary">+ Add book</Link>
-            <Link to="/admin/loans" className="btn btn-secondary">View all loans</Link>
+        <div className="admin-page-header">
+          <h1>{t('admin.dashboard')}</h1>
+          <div className="admin-quick-actions">
+            <Link to="/admin/books" className="btn btn-primary btn-sm">{t('admin.addBook')}</Link>
+            <Link to="/admin/loans" className="btn btn-secondary btn-sm">{t('admin.viewAllLoans')}</Link>
           </div>
         </div>
 
-        {/* Stats grid */}
-        <div className="stats-grid">
-          <StatCard label="Total books"     value={data?.total_books}     icon="📚" color="blue" />
-          <StatCard label="Books available" value={data?.books_in}        icon="✓"  color="green" />
-          <StatCard label="Checked out"     value={data?.books_out}       icon="↗"  color="amber" />
-          <StatCard label="Overdue"         value={data?.overdue_count}   icon="⚠" color="red" />
-        </div>
+        {/* Stat cards */}
+        {loading ? (
+          <div className="admin-stats-grid">
+            {[1,2,3,4,5].map(i => <div key={i} className="skeleton" style={{ height: 90, borderRadius: 18 }} />)}
+          </div>
+        ) : (
+          <div className="admin-stats-grid">
+            <StatCard label={t('admin.totalBooks')}  value={data?.total_books}      color="blue"   />
+            <StatCard label={t('admin.available')}   value={data?.books_available}  color="green"  />
+            <StatCard label={t('admin.checkedOut')}  value={data?.books_out}        color="amber"  />
+            <StatCard label={t('admin.overdue')}     value={data?.overdue_count}    color="red"    />
+            <StatCard label={t('admin.locked')}      value={data?.locked_books}     color="purple" />
+          </div>
+        )}
 
-        <div className="dash-grid">
-          {/* Overdue books */}
-          <section className="dash-section">
-            <h2>
-              Overdue books
-              {data?.overdue_count > 0 && (
-                <span className="overdue-badge">{data.overdue_count}</span>
+        {/* Overdue section */}
+        <div className="glass admin-section">
+          <div className="admin-section-header">
+            <h3>
+              {t('admin.overdueSection')}
+              {overdue.length > 0 && (
+                <span className="admin-overdue-count">{overdue.length}</span>
               )}
-            </h2>
-            {data?.overdue_loans?.length === 0 ? (
-              <div className="empty-state" style={{ padding: '32px 0' }}>
-                <div className="empty-state-icon" style={{fontSize:32}}>✓</div>
-                <p style={{color:'var(--color-success)',fontWeight:600}}>No overdue books</p>
-              </div>
-            ) : (
-              <div className="table-wrap">
-                <table className="loan-table">
-                  <thead>
-                    <tr>
-                      <th>Book</th>
-                      <th>Author</th>
-                      <th>Borrower</th>
-                      <th>Phone</th>
-                      <th>Due date</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.overdue_loans.map(loan => (
-                      <OverdueRow key={loan.loan_id} loan={loan} onReturn={load} />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-
-          {/* Genre breakdown */}
-          <section className="dash-section genre-section">
-            <h2>Collection by genre</h2>
-            <div className="genre-list">
-              {genres.map(([genre, count]) => (
-                <div key={genre} className="genre-row">
-                  <span className="genre-name">{genre}</span>
-                  <div className="genre-bar-wrap">
-                    <div
-                      className="genre-bar"
-                      style={{ width: `${(count / (data?.total_books || 1)) * 100}%` }}
-                    />
-                  </div>
-                  <span className="genre-count">{count}</span>
-                </div>
-              ))}
+            </h3>
+          </div>
+          {overdue.length === 0 ? (
+            <div className="admin-all-good">
+              <span>✓</span>
+              <p>{t('admin.allGood')}</p>
             </div>
-          </section>
+          ) : (
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>{t('admin.colBook')}</th>
+                    <th>{t('admin.colAuthor')}</th>
+                    <th>{t('admin.colBorrower')}</th>
+                    <th>{t('admin.colMemberId')}</th>
+                    <th>{t('admin.colPhone')}</th>
+                    <th>{t('admin.colDue')}</th>
+                    <th>{t('admin.colAction')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {overdue.map(loan => (
+                    <tr key={loan.id} className="admin-overdue-row">
+                      <td><Link to={`/book/${loan.book_id}`} className="admin-book-link">{loan.book?.title || '—'}</Link></td>
+                      <td>{loan.book?.author || '—'}</td>
+                      <td>{loan.user?.full_name || loan.borrower_name || '—'}</td>
+                      <td>{loan.user?.membership_id || '—'}</td>
+                      <td>{loan.user?.phone || '—'}</td>
+                      <td className="admin-overdue-date">{fmt(loan.due_date)}</td>
+                      <td>
+                        <button
+                          className="btn btn-sm btn-secondary"
+                          disabled={returning[loan.id]}
+                          onClick={() => handleReturn(loan.id)}
+                        >
+                          {returning[loan.id] ? <><span className="spinner" />{t('admin.returning')}</> : t('admin.markReturned')}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
+        {/* Category breakdown */}
+        {categoryBreakdown.length > 0 && (
+          <div className="glass admin-section">
+            <h3>{t('admin.byCategory')}</h3>
+            <div className="admin-category-bars">
+              {categoryBreakdown.map(cat => {
+                const colors = getCategoryColors(cat.category);
+                const pct = Math.round((cat.count / maxCatCount) * 100);
+                return (
+                  <div key={cat.category} className="admin-cat-row">
+                    <span className="admin-cat-name">{cat.category}</span>
+                    <div className="admin-cat-bar-wrap">
+                      <div
+                        className="admin-cat-bar"
+                        style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${colors.from}, ${colors.to})` }}
+                      />
+                    </div>
+                    <span className="admin-cat-count">{cat.count}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
-    </main>
+    </div>
   );
 }
