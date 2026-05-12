@@ -2,9 +2,14 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 10px 18px;
   border-radius: var(--radius-full);
-  padding: 8px 16px;
-  flex-wrap: wrap;
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  width: 100%;
 }
 
 .search-input-wrap {
@@ -12,51 +17,71 @@
   align-items: center;
   gap: 8px;
   flex: 1;
-  min-width: 200px;
+  min-width: 0;
 }
 
 .search-icon {
   color: var(--text-subtle);
   flex-shrink: 0;
-}
-
-[dir="rtl"] .search-icon {
-  order: 1;
+  display: flex;
+  align-items: center;
 }
 
 .search-input {
-  flex: 1;
   border: none;
-  background: transparent;
+  background: none;
   outline: none;
   font-size: 14px;
   color: var(--text);
-  backdrop-filter: none;
-  box-shadow: none;
-  padding: 4px 0;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
 }
 
 .search-input::placeholder {
   color: var(--text-subtle);
 }
 
-.search-select {
-  width: auto;
+.search-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(108, 71, 255, 0.15);
   flex-shrink: 0;
-  padding: 6px 10px;
-  font-size: 13px;
+}
+
+.search-select {
+  border: none;
+  background: rgba(108, 71, 255, 0.08);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: var(--radius-full);
+  outline: none;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  width: auto;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236C47FF' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px;
+}
+
+.search-select:focus {
+  background-color: rgba(108, 71, 255, 0.14);
 }
 
 @media (max-width: 640px) {
   .search-bar {
+    flex-wrap: wrap;
     border-radius: var(--radius-lg);
-    padding: 12px;
+    padding: 12px 14px;
+    gap: 8px;
   }
-  .search-input-wrap {
-    width: 100%;
-  }
-  .search-select {
-    flex: 1;
-  }
+  .search-input-wrap { width: 100%; }
+  .search-divider { display: none; }
+  .search-select { flex: 1; }
 }

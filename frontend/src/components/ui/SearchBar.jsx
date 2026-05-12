@@ -27,11 +27,13 @@ export default function SearchBar({ onSearch, onFilter, onStatusFilter }) {
   }
 
   return (
-    <div className="search-bar glass">
+    <div className="search-bar">
       <div className="search-input-wrap">
-        <svg className="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-        </svg>
+        <span className="search-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+        </span>
         <input
           type="text"
           className="search-input"
@@ -40,11 +42,12 @@ export default function SearchBar({ onSearch, onFilter, onStatusFilter }) {
           onChange={e => setQuery(e.target.value)}
         />
       </div>
-      <select className="search-select form-select" value={category} onChange={handleCategory}>
+      <div className="search-divider" />
+      <select className="search-select" value={category} onChange={handleCategory}>
         <option value="">{t('catalogue.allCategories')}</option>
         {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
       </select>
-      <select className="search-select form-select" value={status} onChange={handleStatus}>
+      <select className="search-select" value={status} onChange={handleStatus}>
         <option value="">{t('catalogue.allStatuses')}</option>
         <option value="available">{t('catalogue.available')}</option>
         <option value="out">{t('catalogue.checkedOut')}</option>
