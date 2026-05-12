@@ -1,4 +1,7 @@
-async function request(path, options = {}) {
+// Single in-flight refresh promise — all concurrent 401s wait on the same call
+let refreshPromise = null;
+
+async function request(path, options = {}, skipRefresh = false) {
   const isFormData = options.body instanceof FormData;
   const headers = isFormData
     ? { ...options.headers }
@@ -14,6 +17,37 @@ async function request(path, options = {}) {
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
+    // Silent refresh: on TOKEN_EXPIRED, refresh once and retry the original request
+    if (res.status === 401 && data.code === 'TOKEN_EXPIRED' && !skipRefresh) {
+      const refreshToken = localStorage.getItem('irnc_refresh_token');
+      if (refreshToken) {
+        if (!refreshPromise) {
+          refreshPromise = fetch(`${BASE}/api/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          })
+            .then(r => r.json())
+            .then(d => {
+              if (!d.access_token) throw new Error('refresh_failed');
+              localStorage.setItem('irnc_access_token', d.access_token);
+              if (d.refresh_token) localStorage.setItem('irnc_refresh_token', d.refresh_token);
+            })
+            .finally(() => { refreshPromise = null; });
+        }
+
+        try {
+          await refreshPromise;
+          return request(path, options, true); // retry with new token
+        } catch {
+          localStorage.removeItem('irnc_access_token');
+          localStorage.removeItem('irnc_refresh_token');
+          localStorage.removeItem('irnc_user');
+          window.dispatchEvent(new Event('auth:expired'));
+        }
+      }
+    }
+
     const err = new Error(data.error || `Request failed (${res.status})`);
     err.code   = data.code;
     err.status = res.status;

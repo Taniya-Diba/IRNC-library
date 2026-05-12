@@ -1,6 +1,9 @@
 .modal-backdrop {
   position: fixed;
-  inset: 0;
+  top: var(--nav-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(80, 60, 180, 0.15);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -20,7 +23,7 @@
 .modal-box {
   width: 100%;
   border-radius: var(--radius-xl);
-  max-height: 90vh;
+  max-height: calc(100vh - var(--nav-height) - 32px);
   display: flex;
   flex-direction: column;
   animation: modal-slide-up 0.18s ease;
@@ -80,7 +83,7 @@
 
   .modal-box {
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    max-height: 92vh;
+    max-height: calc(100vh - var(--nav-height));
     max-width: 100vw !important;
     width: 100vw;
     animation: modal-slide-up-mobile 0.22s ease;

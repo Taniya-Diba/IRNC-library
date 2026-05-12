@@ -36,18 +36,21 @@
 }
 
 .qr-search {
-  flex: 1;
+  flex: 1 !important;
+  width: auto !important;
+  min-width: 0 !important;
   border: none !important;
   background: transparent !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
-  padding: 6px 0;
+  padding: 6px 0 !important;
 }
 
 .qr-cat-select {
   flex-shrink: 0;
-  width: auto;
+  width: auto !important;
   min-width: 160px;
+  max-width: 220px;
 }
 
 /* Progress */

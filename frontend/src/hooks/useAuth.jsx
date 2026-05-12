@@ -29,6 +29,13 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
+  // When api.js exhausts its refresh retry, it fires this event
+  useEffect(() => {
+    function handleExpired() { clearAuth(); }
+    window.addEventListener('auth:expired', handleExpired);
+    return () => window.removeEventListener('auth:expired', handleExpired);
+  }, []);
+
   function clearAuth() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_KEY);
