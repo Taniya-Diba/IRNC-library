@@ -21,7 +21,7 @@ export default function BookCard({ book }) {
           <img src={cover_image_url} alt={title} loading="lazy" className="book-cover-img" />
         ) : (
           <div
-            className="book-cover-placeholder"
+            className="book-cover book-cover-placeholder"
             style={{ background: getCategoryGradient(category) }}
           >
             <span className="book-cover-initial">{title?.charAt(0)?.toUpperCase()}</span>

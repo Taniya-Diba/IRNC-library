@@ -74,7 +74,11 @@ app.use((err, _req, res, _next) => {
   res.status(err.status || 500).json({ error: err.message || 'Server error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Library API running on port ${PORT}`);
-  startOverdueCron();
-});
+export default app;
+
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Library API running on port ${PORT}`);
+    startOverdueCron();
+  });
+}

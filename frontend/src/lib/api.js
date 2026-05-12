@@ -1,5 +1,8 @@
 async function request(path, options = {}) {
-  const headers = { 'Content-Type': 'application/json', ...options.headers };
+  const isFormData = options.body instanceof FormData;
+  const headers = isFormData
+    ? { ...options.headers }
+    : { 'Content-Type': 'application/json', ...options.headers };
   const token = localStorage.getItem('irnc_access_token');
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
