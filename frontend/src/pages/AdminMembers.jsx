@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { users as usersApi } from '../lib/api.js';
+import { getCategoryColors } from '../lib/categoryColors.js';
+import Modal from '../components/ui/Modal.jsx';
 import toast from 'react-hot-toast';
 import './AdminMembers.css';
 
@@ -11,7 +13,7 @@ function fmt(d) {
 
 function initials(name) {
   if (!name) return '?';
-  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  return name.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
 export default function AdminMembers() {
@@ -21,9 +23,13 @@ export default function AdminMembers() {
   const [search, setSearch]     = useState('');
   const [toggling, setToggling] = useState({});
 
-  useEffect(() => { load(); }, []);
+  // Loan history modal
+  const [loanModalOpen, setLoanModalOpen]   = useState(false);
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [memberLoans, setMemberLoans]       = useState([]);
+  const [loadingLoans, setLoadingLoans]     = useState(false);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const d = await usersApi.list({ role: 'member' });
@@ -33,13 +39,36 @@ export default function AdminMembers() {
     } finally {
       setLoading(false);
     }
+  }, [t]);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function handleViewLoans(member) {
+    setSelectedMember(member);
+    setMemberLoans([]);
+    setLoanModalOpen(true);
+    setLoadingLoans(true);
+    try {
+      const data = await usersApi.getLoans(member.id);
+      setMemberLoans(Array.isArray(data) ? data : data?.loans || []);
+    } catch {
+      toast.error(t('errors.networkError'));
+    } finally {
+      setLoadingLoans(false);
+    }
   }
 
   async function handleToggle(member) {
-    setToggling(t => ({ ...t, [member.id]: true }));
+    const isActive = member.is_active !== false;
+    if (isActive && !window.confirm(t('admin.deactivateConfirm'))) return;
+
+    setToggling(prev => ({ ...prev, [member.id]: true }));
     try {
-      const isActive = member.is_active !== false;
-      await usersApi.update(member.id, { is_active: !isActive });
+      if (isActive) {
+        await usersApi.deactivate(member.id);
+      } else {
+        await usersApi.activate(member.id);
+      }
       setMembers(ms => ms.map(m =>
         m.id === member.id ? { ...m, is_active: !isActive } : m
       ));
@@ -47,7 +76,7 @@ export default function AdminMembers() {
     } catch {
       toast.error(t('errors.unknownError'));
     } finally {
-      setToggling(tt => ({ ...tt, [member.id]: false }));
+      setToggling(prev => ({ ...prev, [member.id]: false }));
     }
   }
 
@@ -94,10 +123,8 @@ export default function AdminMembers() {
                   <tr>
                     <th>{t('admin.memberName')}</th>
                     <th>{t('admin.colMemberId')}</th>
-                    <th>{t('admin.memberEmail')}</th>
-                    <th>{t('admin.memberPhone')}</th>
-                    <th>{t('admin.memberSince')}</th>
-                    <th>{t('admin.activeLoans')}</th>
+                    <th className="col-hide-mobile">{t('admin.memberEmail')}</th>
+                    <th className="col-hide-mobile">{t('admin.memberPhone')}</th>
                     <th>{t('admin.memberStatus')}</th>
                     <th>{t('admin.colAction')}</th>
                   </tr>
@@ -109,37 +136,48 @@ export default function AdminMembers() {
                       <tr key={member.id}>
                         <td>
                           <div className="member-name-cell">
-                            <div className="member-avatar-sm">{initials(member.full_name)}</div>
+                            <div
+                              className="member-avatar-sm"
+                              style={{
+                                background: isActive
+                                  ? 'linear-gradient(135deg, #6C47FF, #A78BFA)'
+                                  : 'linear-gradient(135deg, #94a3b8, #cbd5e1)',
+                              }}
+                            >
+                              {initials(member.full_name)}
+                            </div>
                             <span>{member.full_name}</span>
                           </div>
                         </td>
                         <td>
                           <span className="member-id-chip">{member.membership_id || '—'}</span>
                         </td>
-                        <td>{member.email}</td>
-                        <td>{member.phone || '—'}</td>
-                        <td>{fmt(member.created_at)}</td>
-                        <td>
-                          <span className="member-loan-count">
-                            {member.active_loans_count ?? '—'}
-                          </span>
-                        </td>
+                        <td className="col-hide-mobile">{member.email}</td>
+                        <td className="col-hide-mobile">{member.phone || '—'}</td>
                         <td>
                           <span className={`badge ${isActive ? 'badge-available' : 'badge-locked'}`}>
                             {isActive ? t('admin.active') : t('admin.inactive')}
                           </span>
                         </td>
                         <td>
-                          <button
-                            className={`btn btn-sm ${isActive ? 'btn-danger' : 'btn-secondary'}`}
-                            disabled={toggling[member.id]}
-                            onClick={() => handleToggle(member)}
-                          >
-                            {toggling[member.id]
-                              ? <span className="spinner" />
-                              : isActive ? t('admin.deactivateBtn') : t('admin.activateBtn')
-                            }
-                          </button>
+                          <div className="admin-actions">
+                            <button
+                              className="btn btn-sm btn-secondary"
+                              onClick={() => handleViewLoans(member)}
+                            >
+                              {t('admin.viewLoans')}
+                            </button>
+                            <button
+                              className={`btn btn-sm ${isActive ? 'btn-danger' : 'btn-secondary'}`}
+                              disabled={toggling[member.id]}
+                              onClick={() => handleToggle(member)}
+                            >
+                              {toggling[member.id]
+                                ? <span className="spinner" />
+                                : isActive ? t('admin.deactivateBtn') : t('admin.activateBtn')
+                              }
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -150,6 +188,69 @@ export default function AdminMembers() {
           </div>
         )}
       </div>
+
+      {/* Loan history modal */}
+      <Modal
+        open={loanModalOpen}
+        onClose={() => setLoanModalOpen(false)}
+        title={selectedMember ? `${selectedMember.full_name} — ${t('admin.loanHistory')}` : ''}
+        maxWidth={680}
+      >
+        {loadingLoans ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+            <div className="spinner" style={{ width: 36, height: 36 }} />
+          </div>
+        ) : memberLoans.length === 0 ? (
+          <div className="empty-state" style={{ padding: '32px 0' }}>
+            <div className="empty-state-icon">📚</div>
+            <p>{t('admin.noLoans')}</p>
+          </div>
+        ) : (
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>{t('admin.colTitle')}</th>
+                  <th>{t('admin.colCheckedOut')}</th>
+                  <th>{t('admin.colDue')}</th>
+                  <th>{t('admin.colStatus')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {memberLoans.map(loan => {
+                  const colors = getCategoryColors(loan.book?.category);
+                  return (
+                    <tr key={loan.id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span
+                            style={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              background: colors.from,
+                              flexShrink: 0,
+                              display: 'inline-block',
+                            }}
+                          />
+                          {loan.book?.title || '—'}
+                        </div>
+                      </td>
+                      <td>{fmt(loan.checkout_date || loan.created_at)}</td>
+                      <td>{fmt(loan.due_date)}</td>
+                      <td>
+                        <span className={`badge badge-${loan.status}`}>
+                          {t(`status.${loan.status}`)}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

@@ -74,7 +74,9 @@ export const users = {
     return request(`/users?${q}`);
   },
   getLoans:   (userId)      => request(`/users/${userId}/loans`),
-  update:     (id, body)    => request(`/users/${id}`,        { method: 'PATCH', body: JSON.stringify(body) }),
+  update:     (id, body)    => request(`/users/${id}`,            { method: 'PATCH', body: JSON.stringify(body) }),
+  activate:   (id)          => request(`/users/${id}/activate`,   { method: 'PATCH' }),
+  deactivate: (id)          => request(`/users/${id}/deactivate`, { method: 'PATCH' }),
 };
 
 export const stats = {

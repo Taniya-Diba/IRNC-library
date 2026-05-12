@@ -52,6 +52,9 @@ export default function Navbar() {
               <NavLink to="/admin/members" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
                 {t('nav.members')}
               </NavLink>
+              <NavLink to="/admin/qr-generator" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+                {t('nav.qrGenerator')}
+              </NavLink>
             </>
           )}
         </div>

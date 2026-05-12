@@ -31,19 +31,27 @@
   font-weight: 500;
   color: var(--text);
   max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.admin-cat-pill {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: var(--radius-full);
+.admin-title-author {
   font-size: 11px;
-  font-weight: 600;
-  color: #fff;
-  white-space: nowrap;
+  color: var(--text-subtle);
+  font-weight: 400;
+  margin-top: 2px;
+  display: none;
+}
+
+.admin-cat-dot-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.admin-cat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .admin-actions {
@@ -52,23 +60,15 @@
   flex-wrap: nowrap;
 }
 
-.admin-book-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+/* Lock button purple tint */
+.btn-lock {
+  background: rgba(108, 71, 255, 0.12);
+  color: var(--accent);
+  border: 1px solid rgba(108, 71, 255, 0.25);
 }
 
-.admin-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.admin-modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding-top: 8px;
+.btn-lock:hover:not(:disabled) {
+  background: rgba(108, 71, 255, 0.20);
 }
 
 .admin-section {
@@ -77,7 +77,74 @@
   margin-bottom: 24px;
 }
 
-@media (max-width: 640px) {
+/* ── Book form modal layout ── */
+.admin-book-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.book-form-layout {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 20px;
+  align-items: start;
+}
+
+.book-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.book-form-files {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 2px;
+}
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-optional {
+  font-size: 11px;
+  color: var(--text-subtle);
+  font-weight: 400;
+}
+
+.admin-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--glass-border);
+}
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+  .col-hide-mobile { display: none !important; }
+  .col-show-mobile { display: block !important; }
+  .admin-title-author { display: block; }
+
+  .admin-actions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 700px) {
+  .book-form-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .book-form-files {
+    border-top: 1px solid var(--glass-border);
+    padding-top: 16px;
+  }
+
   .admin-form-grid {
     grid-template-columns: 1fr;
   }

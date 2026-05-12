@@ -8,6 +8,7 @@
     "manageBooks": "Manage books",
     "loans":       "Loans",
     "members":     "Members",
+    "qrGenerator": "QR Generator",
     "signIn":      "Sign in",
     "signOut":     "Sign out",
     "register":    "Register"
@@ -113,6 +114,7 @@
     "noHistory":      "No loan history yet",
     "dueOn":          "Due",
     "returnedOn":     "Returned",
+    "daysOverdue":    "days overdue",
     "accountDetails": "Account details",
     "name":           "Name",
     "email":          "Email",
@@ -184,8 +186,25 @@
     "inactive":       "Inactive",
     "activateBtn":    "Activate",
     "deactivateBtn":  "Deactivate",
-    "searchBooks":    "Search books…",
-    "searchMembers":  "Search members…"
+    "searchBooks":       "Search books…",
+    "searchMembers":     "Search members…",
+    "viewLoans":         "View loans",
+    "loanHistory":       "Loan history",
+    "noLoans":           "No loans yet",
+    "deactivateConfirm": "Deactivate this member?",
+    "daysOverdue":       "days overdue"
+  },
+  "qr": {
+    "title":        "QR Code Generator",
+    "subtitle":     "Generate and print QR codes for all books",
+    "generateAll":  "Generate all",
+    "downloadAll":  "Download all",
+    "downloadHint": "Right-click each QR image and choose Save image to download individually",
+    "generating":   "Generating… {{current}} / {{total}}",
+    "download":     "Download",
+    "print":        "Print",
+    "noBooks":      "No books found",
+    "scanToCheckout": "Scan to check out"
   },
   "errors": {
     "bookNotFound":       "Book not found",

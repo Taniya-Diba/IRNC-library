@@ -12,12 +12,17 @@ function fmt(d) {
   return new Date(d).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+function daysOverdue(dueDate) {
+  return Math.floor((Date.now() - new Date(dueDate)) / 86400000);
+}
+
 export default function AdminDashboard() {
   const { t } = useTranslation();
-  const [data, setData]         = useState(null);
-  const [overdue, setOverdue]   = useState([]);
+  const [data, setData]           = useState(null);
+  const [overdue, setOverdue]     = useState([]);
   const [returning, setReturning] = useState({});
-  const [loading, setLoading]   = useState(true);
+  const [loading, setLoading]     = useState(true);
+  const [barsReady, setBarsReady] = useState(false);
 
   useEffect(() => {
     Promise.all([statsApi.get(), loansApi.overdue()])
@@ -27,7 +32,14 @@ export default function AdminDashboard() {
       })
       .catch(() => toast.error(t('errors.networkError')))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
+
+  // Animate bars after data loads
+  useEffect(() => {
+    if (!data?.by_category?.length) return;
+    const timer = setTimeout(() => setBarsReady(true), 120);
+    return () => clearTimeout(timer);
+  }, [data]);
 
   async function handleReturn(loanId) {
     setReturning(r => ({ ...r, [loanId]: true }));
@@ -43,8 +55,11 @@ export default function AdminDashboard() {
     }
   }
 
-  const categoryBreakdown = data?.by_category || [];
+  // Sort categories by count descending
+  const categoryBreakdown = [...(data?.by_category || [])].sort((a, b) => (b.count || 0) - (a.count || 0));
   const maxCatCount = Math.max(...categoryBreakdown.map(c => c.count || 0), 1);
+
+  const lockedCount = data?.locked_books ?? data?.books_locked ?? 0;
 
   return (
     <div className="page-content">
@@ -60,15 +75,17 @@ export default function AdminDashboard() {
         {/* Stat cards */}
         {loading ? (
           <div className="admin-stats-grid">
-            {[1,2,3,4,5].map(i => <div key={i} className="skeleton" style={{ height: 90, borderRadius: 18 }} />)}
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="skeleton" style={{ height: 90, borderRadius: 18 }} />
+            ))}
           </div>
         ) : (
           <div className="admin-stats-grid">
-            <StatCard label={t('admin.totalBooks')}  value={data?.total_books}      color="blue"   />
-            <StatCard label={t('admin.available')}   value={data?.books_available}  color="green"  />
-            <StatCard label={t('admin.checkedOut')}  value={data?.books_out}        color="amber"  />
-            <StatCard label={t('admin.overdue')}     value={data?.overdue_count}    color="red"    />
-            <StatCard label={t('admin.locked')}      value={data?.locked_books}     color="purple" />
+            <StatCard label={t('admin.totalBooks')} value={data?.total_books}     color="blue"   />
+            <StatCard label={t('admin.available')}  value={data?.books_available} color="green"  />
+            <StatCard label={t('admin.checkedOut')} value={data?.books_out}       color="amber"  />
+            <StatCard label={t('admin.overdue')}    value={data?.overdue_count}   color="red"    />
+            <StatCard label={t('admin.locked')}     value={lockedCount}           color="purple" />
           </div>
         )}
 
@@ -93,34 +110,71 @@ export default function AdminDashboard() {
                 <thead>
                   <tr>
                     <th>{t('admin.colBook')}</th>
-                    <th>{t('admin.colAuthor')}</th>
-                    <th>{t('admin.colBorrower')}</th>
-                    <th>{t('admin.colMemberId')}</th>
-                    <th>{t('admin.colPhone')}</th>
+                    <th className="col-hide-mobile">{t('admin.colBorrower')}</th>
+                    <th className="col-hide-mobile">{t('admin.colMemberId')}</th>
+                    <th className="col-hide-mobile">{t('admin.colPhone')}</th>
                     <th>{t('admin.colDue')}</th>
                     <th>{t('admin.colAction')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {overdue.map(loan => (
-                    <tr key={loan.id} className="admin-overdue-row">
-                      <td><Link to={`/book/${loan.book_id}`} className="admin-book-link">{loan.book?.title || '—'}</Link></td>
-                      <td>{loan.book?.author || '—'}</td>
-                      <td>{loan.user?.full_name || loan.borrower_name || '—'}</td>
-                      <td>{loan.user?.membership_id || '—'}</td>
-                      <td>{loan.user?.phone || '—'}</td>
-                      <td className="admin-overdue-date">{fmt(loan.due_date)}</td>
-                      <td>
-                        <button
-                          className="btn btn-sm btn-secondary"
-                          disabled={returning[loan.id]}
-                          onClick={() => handleReturn(loan.id)}
-                        >
-                          {returning[loan.id] ? <><span className="spinner" />{t('admin.returning')}</> : t('admin.markReturned')}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {overdue.map(loan => {
+                    const days = daysOverdue(loan.due_date);
+                    const bookColors = getCategoryColors(loan.book?.category);
+                    return (
+                      <tr key={loan.id}>
+                        <td>
+                          <div className="overdue-book-cell">
+                            <span
+                              className="admin-cat-dot"
+                              style={{ background: bookColors.from }}
+                            />
+                            <div>
+                              <Link to={`/book/${loan.book_id}`} className="admin-book-link">
+                                {loan.book?.title || '—'}
+                              </Link>
+                              <div className="overdue-borrower-mobile col-show-mobile">
+                                <strong>{loan.user?.full_name || loan.borrower_name || '—'}</strong>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="col-hide-mobile">
+                          <strong>{loan.user?.full_name || loan.borrower_name || '—'}</strong>
+                        </td>
+                        <td className="col-hide-mobile">
+                          <span className="member-id-chip">
+                            {loan.user?.membership_id || '—'}
+                          </span>
+                        </td>
+                        <td className="col-hide-mobile">
+                          {loan.user?.phone || '—'}
+                        </td>
+                        <td>
+                          <div className="overdue-date-cell">
+                            <span className="admin-overdue-date">{fmt(loan.due_date)}</span>
+                            {days > 0 && (
+                              <span className="overdue-days-badge">
+                                {days} {t('admin.daysOverdue')}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td>
+                          <button
+                            className="btn btn-sm btn-success"
+                            disabled={returning[loan.id]}
+                            onClick={() => handleReturn(loan.id)}
+                          >
+                            {returning[loan.id]
+                              ? <><span className="spinner" style={{ width: 12, height: 12 }} />{t('admin.returning')}</>
+                              : t('admin.markReturned')
+                            }
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -141,10 +195,18 @@ export default function AdminDashboard() {
                     <div className="admin-cat-bar-wrap">
                       <div
                         className="admin-cat-bar"
-                        style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${colors.from}, ${colors.to})` }}
+                        style={{
+                          width: barsReady ? `${pct}%` : '0%',
+                          background: `linear-gradient(90deg, ${colors.from}BF, ${colors.to}BF)`,
+                        }}
                       />
                     </div>
-                    <span className="admin-cat-count">{cat.count}</span>
+                    <span
+                      className="admin-cat-count"
+                      style={{ color: colors.from }}
+                    >
+                      {cat.count}
+                    </span>
                   </div>
                 );
               })}

@@ -1,0 +1,223 @@
+/* Header */
+.qr-header {
+  border-radius: var(--radius-xl);
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.qr-header-text h1 {
+  margin-bottom: 4px;
+}
+
+.qr-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.qr-header-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Filter bar */
+.qr-filter-bar {
+  border-radius: var(--radius-full);
+  padding: 10px 18px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.qr-search {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  padding: 6px 0;
+}
+
+.qr-cat-select {
+  flex-shrink: 0;
+  width: auto;
+  min-width: 160px;
+}
+
+/* Progress */
+.qr-progress-card {
+  border-radius: var(--radius-xl);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.qr-progress-text {
+  font-size: 14px;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+/* Grid */
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding-bottom: 40px;
+}
+
+/* QR card */
+.qr-card {
+  border-radius: var(--radius-xl);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  transition: box-shadow 0.18s, transform 0.18s;
+}
+
+.qr-card:hover {
+  box-shadow: var(--glass-shadow-hover);
+  transform: translateY(-2px);
+}
+
+/* QR image */
+.qr-image-wrap {
+  width: 180px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.qr-img {
+  width: 180px;
+  height: 180px;
+  display: block;
+  animation: qr-fade-in 0.3s ease;
+}
+
+@keyframes qr-fade-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.qr-skeleton {
+  width: 180px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(108, 71, 255, 0.05);
+  border-radius: var(--radius-md);
+}
+
+/* Card info */
+.qr-card-info {
+  width: 100%;
+}
+
+.qr-nfc-tag {
+  font-family: monospace;
+  font-size: 11px;
+  background: rgba(108, 71, 255, 0.08);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+.qr-book-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+  margin-bottom: 3px;
+}
+
+.qr-book-author {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 6px;
+}
+
+.qr-category-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.qr-cat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.qr-cat-name {
+  font-size: 11px;
+  color: var(--text-subtle);
+}
+
+/* Card actions */
+.qr-card-actions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.qr-card-actions .btn {
+  flex: 1;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .qr-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .qr-image-wrap,
+  .qr-img,
+  .qr-skeleton {
+    width: 140px;
+    height: 140px;
+  }
+
+  .qr-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .qr-filter-bar {
+    flex-wrap: wrap;
+    border-radius: var(--radius-xl);
+  }
+
+  .qr-search {
+    min-width: 0;
+  }
+}

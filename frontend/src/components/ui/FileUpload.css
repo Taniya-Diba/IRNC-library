@@ -1,0 +1,164 @@
+.file-upload { width: 100%; }
+
+.file-upload-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.file-upload-hint {
+  font-size: 11px;
+  color: var(--text-subtle);
+  margin-top: 4px;
+  display: block;
+}
+
+/* ── Drop zone ── */
+.drop-zone {
+  border: 2px dashed rgba(108, 71, 255, 0.25);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+  user-select: none;
+}
+
+.drop-zone:hover,
+.drop-zone.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.drop-zone-icon {
+  color: var(--accent);
+  opacity: 0.6;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.drop-zone-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.drop-zone-sub {
+  font-size: 11px;
+  color: var(--text-subtle);
+}
+
+/* ── Uploading state ── */
+.upload-progress {
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-bar-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(108, 71, 255, 0.12);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+
+.upload-progress-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ── Preview state ── */
+.file-preview {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  position: relative;
+  background: var(--glass-bg);
+}
+
+.file-preview-img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  display: block;
+}
+
+.file-preview-pdf {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pdf-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(239, 68, 68, 0.12);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+.pdf-info { flex: 1; min-width: 0; }
+
+.pdf-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdf-size {
+  font-size: 11px;
+  color: var(--text-subtle);
+  margin-top: 2px;
+}
+
+/* ── Preview overlay on hover ── */
+.file-preview-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(26, 22, 37, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+
+.file-preview:hover .file-preview-overlay {
+  opacity: 1;
+}

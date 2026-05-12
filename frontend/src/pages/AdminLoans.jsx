@@ -86,11 +86,11 @@ export default function AdminLoans() {
                   <tr>
                     <th>{t('admin.colBook')}</th>
                     <th>{t('admin.colBorrower')}</th>
-                    <th>{t('admin.colMemberId')}</th>
-                    <th>{t('admin.colPhone')}</th>
-                    <th>{t('admin.colCheckedOut')}</th>
-                    <th>{t('admin.colDue')}</th>
-                    <th>{t('admin.colReturned')}</th>
+                    <th className="col-hide-mobile">{t('admin.colMemberId')}</th>
+                    <th className="col-hide-mobile">{t('admin.colPhone')}</th>
+                    <th className="col-hide-mobile">{t('admin.colCheckedOut')}</th>
+                    <th className="col-hide-mobile">{t('admin.colDue')}</th>
+                    <th className="col-hide-mobile">{t('admin.colReturned')}</th>
                     <th>{t('admin.colStatus')}</th>
                     <th>{t('admin.colAction')}</th>
                   </tr>
@@ -103,11 +103,11 @@ export default function AdminLoans() {
                     >
                       <td>{loan.book?.title || '—'}</td>
                       <td>{loan.user?.full_name || loan.borrower_name || '—'}</td>
-                      <td>{loan.user?.membership_id || '—'}</td>
-                      <td>{loan.user?.phone || '—'}</td>
-                      <td>{fmt(loan.checkout_date || loan.created_at)}</td>
-                      <td>{fmt(loan.due_date)}</td>
-                      <td>{fmt(loan.return_date)}</td>
+                      <td className="col-hide-mobile">{loan.user?.membership_id || '—'}</td>
+                      <td className="col-hide-mobile">{loan.user?.phone || '—'}</td>
+                      <td className="col-hide-mobile">{fmt(loan.checkout_date || loan.created_at)}</td>
+                      <td className="col-hide-mobile">{fmt(loan.due_date)}</td>
+                      <td className="col-hide-mobile">{fmt(loan.return_date)}</td>
                       <td><span className={`badge badge-${loan.status}`}>{t(`status.${loan.status}`)}</span></td>
                       <td>
                         {(loan.status === 'out' || loan.status === 'overdue') && (

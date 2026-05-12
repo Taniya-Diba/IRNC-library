@@ -11,8 +11,9 @@ import UserProfilePage  from './pages/UserProfilePage.jsx';
 import AdminDashboard   from './pages/AdminDashboard.jsx';
 import AdminBooks       from './pages/AdminBooks.jsx';
 import AdminLoans       from './pages/AdminLoans.jsx';
-import AdminMembers     from './pages/AdminMembers.jsx';
-import NotFound         from './pages/NotFound.jsx';
+import AdminMembers       from './pages/AdminMembers.jsx';
+import AdminQRGenerator  from './pages/AdminQRGenerator.jsx';
+import NotFound           from './pages/NotFound.jsx';
 
 function LoadingScreen() {
   return (
@@ -67,7 +68,8 @@ function AppRoutes() {
         <Route path="/admin"         element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         <Route path="/admin/books"   element={<AdminRoute><AdminBooks /></AdminRoute>} />
         <Route path="/admin/loans"   element={<AdminRoute><AdminLoans /></AdminRoute>} />
-        <Route path="/admin/members" element={<AdminRoute><AdminMembers /></AdminRoute>} />
+        <Route path="/admin/members"       element={<AdminRoute><AdminMembers /></AdminRoute>} />
+        <Route path="/admin/qr-generator" element={<AdminRoute><AdminQRGenerator /></AdminRoute>} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

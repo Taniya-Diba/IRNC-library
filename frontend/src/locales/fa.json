@@ -8,6 +8,7 @@
     "manageBooks": "مدیریت کتاب‌ها",
     "loans":       "امانت‌ها",
     "members":     "اعضا",
+    "qrGenerator": "تولید کد QR",
     "signIn":      "ورود",
     "signOut":     "خروج",
     "register":    "ثبت نام"
@@ -113,6 +114,7 @@
     "noHistory":      "هنوز تاریخچه‌ای وجود ندارد",
     "dueOn":          "سررسید",
     "returnedOn":     "بازگشت داده شده",
+    "daysOverdue":    "روز دیرکرد",
     "accountDetails": "جزئیات حساب",
     "name":           "نام",
     "email":          "ایمیل",
@@ -184,8 +186,25 @@
     "inactive":       "غیرفعال",
     "activateBtn":    "فعال‌سازی",
     "deactivateBtn":  "غیرفعال‌سازی",
-    "searchBooks":    "جستجوی کتاب‌ها…",
-    "searchMembers":  "جستجوی اعضا…"
+    "searchBooks":       "جستجوی کتاب‌ها…",
+    "searchMembers":     "جستجوی اعضا…",
+    "viewLoans":         "مشاهده امانت‌ها",
+    "loanHistory":       "تاریخچه امانت",
+    "noLoans":           "هنوز امانتی وجود ندارد",
+    "deactivateConfirm": "این عضو غیرفعال شود؟",
+    "daysOverdue":       "روز دیرکرد"
+  },
+  "qr": {
+    "title":        "تولید کد QR",
+    "subtitle":     "تولید و چاپ کدهای QR برای همه کتاب‌ها",
+    "generateAll":  "تولید همه",
+    "downloadAll":  "دانلود همه",
+    "downloadHint": "روی هر تصویر QR کلیک راست کنید و «ذخیره تصویر» را انتخاب کنید",
+    "generating":   "در حال تولید… {{current}} / {{total}}",
+    "download":     "دانلود",
+    "print":        "چاپ",
+    "noBooks":      "کتابی یافت نشد",
+    "scanToCheckout": "اسکن کنید برای امانت"
   },
   "errors": {
     "bookNotFound":       "کتاب یافت نشد",

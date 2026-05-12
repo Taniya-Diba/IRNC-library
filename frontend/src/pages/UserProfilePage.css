@@ -24,13 +24,8 @@
   flex-shrink: 0;
 }
 
-.profile-account-info {
-  flex: 1;
-}
-
-.profile-account-info h2 {
-  margin-bottom: 14px;
-}
+.profile-account-info { flex: 1; }
+.profile-account-info h2 { margin-bottom: 14px; }
 
 .profile-detail-rows {
   display: flex;
@@ -52,9 +47,7 @@
   flex-shrink: 0;
 }
 
-.profile-detail-value {
-  color: var(--text);
-}
+.profile-detail-value { color: var(--text); }
 
 .profile-membership-chip {
   padding: 4px 12px;
@@ -98,37 +91,70 @@
   padding: 24px;
 }
 
+/* ── Loan pill cards ── */
 .profile-active-loans {
   display: flex;
   flex-direction: column;
-  gap: 10px;
 }
 
-.profile-loan-row {
+.loan-pill {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 16px;
-  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius-lg);
+  margin-bottom: 10px;
+  transition: box-shadow 0.18s;
 }
 
-.profile-loan-cover {
-  width: 36px;
-  height: 48px;
-  border-radius: 4px;
-  flex-shrink: 0;
+.loan-pill:hover {
+  box-shadow: var(--glass-shadow-hover);
+}
+
+.loan-pill.overdue {
+  border-inline-start: 3px solid var(--status-overdue-dot);
+}
+
+/* Mini book cover */
+.loan-pill-cover {
+  width: 40px;
+  height: 56px;
+  border-radius: 6px;
+  position: relative;
   overflow: hidden;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.profile-loan-info {
+.book-cover-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.30) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.loan-pill-cover-letter {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  position: relative;
+  z-index: 1;
+}
+
+/* Pill info */
+.loan-pill-info {
   flex: 1;
   min-width: 0;
 }
 
-.profile-loan-title {
+.loan-pill-title {
   font-weight: 600;
   font-size: 14px;
   white-space: nowrap;
@@ -136,49 +162,70 @@
   text-overflow: ellipsis;
 }
 
-.profile-loan-author {
+.loan-pill-author {
   font-size: 12px;
   color: var(--text-muted);
+  margin-top: 2px;
 }
 
-.profile-loan-meta {
+.loan-pill-shelf {
+  font-size: 11px;
+  color: var(--text-subtle);
+  margin-top: 2px;
+}
+
+/* Pill right section */
+.loan-pill-right {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 4px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  flex-shrink: 0;
 }
 
-.profile-loan-due {
+.loan-pill-due {
   font-size: 12px;
   color: var(--text-subtle);
-}
-
-.profile-history-table-wrap {
-  overflow-x: auto;
-}
-
-.profile-history-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.profile-history-table th {
-  text-align: start;
-  padding: 8px 12px;
-  color: var(--text-subtle);
-  font-weight: 500;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.50);
   white-space: nowrap;
 }
 
-.profile-history-table td {
-  padding: 10px 12px;
-  color: var(--text-muted);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.30);
+.loan-pill-overdue-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--status-overdue);
+  white-space: nowrap;
 }
 
+/* ── History table ── */
+.profile-history-table-wrap { overflow-x: auto; }
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.history-table thead th {
+  padding: 10px 16px;
+  background: rgba(108, 71, 255, 0.06);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--glass-border);
+  text-align: start;
+  white-space: nowrap;
+}
+
+.history-table tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.40);
+  color: var(--text);
+}
+
+.history-table tbody tr:last-child td { border-bottom: none; }
+.history-table tbody tr:hover { background: rgba(255, 255, 255, 0.30); }
+
+/* ── Mobile ── */
 @media (max-width: 640px) {
   .profile-account-card {
     flex-direction: column;
@@ -186,7 +233,21 @@
     text-align: center;
     padding: 24px 20px;
   }
-  .profile-detail-label {
-    min-width: unset;
+
+  .profile-detail-label { min-width: unset; }
+
+  .loan-pill {
+    flex-wrap: wrap;
+  }
+
+  .loan-pill-right {
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .profile-section {
+    padding: 20px 16px;
   }
 }
