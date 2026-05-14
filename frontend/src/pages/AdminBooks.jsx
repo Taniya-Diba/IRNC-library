@@ -59,7 +59,7 @@ export default function AdminBooks() {
     setLoading(true);
     try {
       const d = await booksApi.list({ limit: 500 });
-      setBooks(Array.isArray(d) ? d : d?.books || []);
+      setBooks(Array.isArray(d) ? d : d?.data || d?.books || []);
     } catch {
       toast.error(t('errors.networkError'));
     } finally {
@@ -110,14 +110,23 @@ export default function AdminBooks() {
     try {
       if (editing) {
         await booksApi.update(editing.id, form);
-        // Files in EDIT mode are uploaded immediately by FileUpload itself
       } else {
         const book = await booksApi.create(form);
         const bookId = book?.id;
+        const uploadErrors = [];
         if (bookId) {
-          if (coverPending)     await uploadFileDirect('cover',      bookId, coverPending,     'cover_image').catch(() => {});
-          if (backCoverPending) await uploadFileDirect('back-cover', bookId, backCoverPending, 'back_cover_image').catch(() => {});
-          if (pdfPending)       await uploadFileDirect('pdf',        bookId, pdfPending,       'pdf').catch(() => {});
+          if (coverPending)
+            await uploadFileDirect('cover', bookId, coverPending, 'cover_image')
+              .catch(err => uploadErrors.push(`Cover: ${err.message}`));
+          if (backCoverPending)
+            await uploadFileDirect('back-cover', bookId, backCoverPending, 'back_cover_image')
+              .catch(err => uploadErrors.push(`Back cover: ${err.message}`));
+          if (pdfPending)
+            await uploadFileDirect('pdf', bookId, pdfPending, 'pdf')
+              .catch(err => uploadErrors.push(`PDF: ${err.message}`));
+        }
+        if (uploadErrors.length > 0) {
+          toast.error(`File upload failed: ${uploadErrors.join('; ')}`);
         }
       }
       toast.success(t('admin.saveBook'));

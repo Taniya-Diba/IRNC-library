@@ -63,7 +63,7 @@ export default function AdminQRGenerator() {
 
   useEffect(() => {
     booksApi.list({ limit: 1000 })
-      .then(d => setBooks(Array.isArray(d) ? d : d?.books || []))
+      .then(d => setBooks(Array.isArray(d) ? d : d?.data || d?.books || []))
       .catch(() => toast.error(t('errors.networkError')))
       .finally(() => setLoading(false));
   }, [t]);

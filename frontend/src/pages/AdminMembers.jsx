@@ -33,7 +33,7 @@ export default function AdminMembers() {
     setLoading(true);
     try {
       const d = await usersApi.list({ role: 'member' });
-      setMembers(Array.isArray(d) ? d : d?.users || []);
+      setMembers(Array.isArray(d) ? d : d?.data || d?.users || []);
     } catch {
       toast.error(t('errors.networkError'));
     } finally {

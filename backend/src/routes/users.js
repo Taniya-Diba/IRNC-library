@@ -53,7 +53,7 @@ router.get('/:id/loans', requireAuth, async (req, res, next) => {
       .from('loans')
       .select(`
         *,
-        books(id, title, author, nfc_tag_id, cover_image_path, shelf_location)
+        book:books(id, title, author, nfc_tag_id, cover_image_path, shelf_location)
       `)
       .eq('user_id', req.params.id)
       .order('checkout_date', { ascending: false });

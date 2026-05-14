@@ -30,7 +30,7 @@ export default function BookPage() {
     setError(null);
 
     const fetchBook = nfcId
-      ? booksApi.getByNfc(nfcId).then(d => d?.books?.[0] || d)
+      ? booksApi.getByNfc(nfcId)
       : booksApi.getById(id);
 
     fetchBook

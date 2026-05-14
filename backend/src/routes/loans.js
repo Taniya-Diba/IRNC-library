@@ -13,8 +13,8 @@ router.get('/', requireAuth, requireAdmin, async (req, res, next) => {
       .from('loans')
       .select(`
         *,
-        books(id, title, author, nfc_tag_id, shelf_location, category),
-        users(id, full_name, email, phone, membership_id)
+        book:books(id, title, author, nfc_tag_id, shelf_location, category),
+        user:users(id, full_name, email, phone, membership_id)
       `)
       .order('checkout_date', { ascending: false });
 
@@ -44,7 +44,7 @@ router.get('/book/:bookId', async (req, res, next) => {
       .from('loans')
       .select(`
         *,
-        users(id, full_name, membership_id)
+        user:users(id, full_name, membership_id)
       `)
       .eq('book_id', req.params.bookId)
       .order('checkout_date', { ascending: false });
@@ -142,8 +142,8 @@ router.post('/', requireAuth, async (req, res, next) => {
       })
       .select(`
         *,
-        books(id, title, author, nfc_tag_id, shelf_location),
-        users(id, full_name, email, membership_id)
+        book:books(id, title, author, nfc_tag_id, shelf_location),
+        user:users(id, full_name, email, membership_id)
       `)
       .single();
 

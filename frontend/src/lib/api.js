@@ -72,7 +72,7 @@ export const books = {
     return request(`/books?${q}`);
   },
   getById:   (id)           => request(`/books/${id}`),
-  getByNfc:  (nfcId)        => request(`/books?nfc=${encodeURIComponent(nfcId)}`),
+  getByNfc:  (nfcId)        => request(`/books/nfc/${encodeURIComponent(nfcId)}`),
   create:    (body)         => request('/books',       { method: 'POST',   body: JSON.stringify(body) }),
   update:    (id, body)     => request(`/books/${id}`, { method: 'PATCH',  body: JSON.stringify(body) }),
   remove:    (id)           => request(`/books/${id}`, { method: 'DELETE' }),
@@ -100,7 +100,7 @@ export const loans = {
   },
   checkout:   (body)        => request('/loans',              { method: 'POST',  body: JSON.stringify(body) }),
   returnBook: (id)          => request(`/loans/${id}/return`, { method: 'PATCH' }),
-  forBook:    (bookId)      => request(`/loans?book_id=${bookId}`),
+  forBook:    (bookId)      => request(`/loans/book/${bookId}`),
   overdue:    ()            => request('/loans?status=overdue'),
 };
 
