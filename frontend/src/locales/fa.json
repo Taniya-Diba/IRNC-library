@@ -44,7 +44,9 @@
     "downloadPdf":  "دانلود PDF",
     "loanHistory":  "تاریخچه امانت",
     "noHistory":    "هنوز تاریخچه‌ای وجود ندارد",
-    "backCover":    "پشت جلد",
+    "backCover":      "پشت جلد",
+    "showBackCover":  "نمایش پشت جلد",
+    "showFrontCover": "نمایش جلد کتاب",
     "notFound":     "کتاب یافت نشد",
     "notFoundHint": "این کتاب در کتابخانه وجود ندارد."
   },

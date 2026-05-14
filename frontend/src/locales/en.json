@@ -44,7 +44,9 @@
     "downloadPdf":  "Download PDF",
     "loanHistory":  "Loan history",
     "noHistory":    "No loan history yet",
-    "backCover":    "Back cover",
+    "backCover":      "Back cover",
+    "showBackCover":  "Show back cover",
+    "showFrontCover": "Show front cover",
     "notFound":     "Book not found",
     "notFoundHint": "This book does not exist in the library."
   },
