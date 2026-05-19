@@ -48,7 +48,9 @@
     "showBackCover":  "Show back cover",
     "showFrontCover": "Show front cover",
     "notFound":     "Book not found",
-    "notFoundHint": "This book does not exist in the library."
+    "notFoundHint": "This book does not exist in the library.",
+    "moreByAuthor": "More by {{author}}",
+    "moreLikeThis": "More like this"
   },
   "checkout": {
     "scanTitle":         "Scan a book to continue",

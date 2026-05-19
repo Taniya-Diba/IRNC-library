@@ -3,6 +3,7 @@ import { useParams, useSearchParams, useNavigate, useLocation, Link } from 'reac
 import { useTranslation } from 'react-i18next';
 import { books as booksApi, loans as loansApi } from '../lib/api.js';
 import { useAuth } from '../hooks/useAuth.jsx';
+import BookCard from '../components/book/BookCard.jsx';
 import { getCategoryGradient } from '../lib/categoryColors.js';
 import { getPaletteSync } from 'colorthief';
 import './BookPage.css';
@@ -29,6 +30,8 @@ export default function BookPage() {
   const [showBack, setShowBack] = useState(false);
   const [dominantColor, setDominantColor] = useState(null);  // darkest — hero bg
   const [lightestColor, setLightestColor] = useState(null);  // lightest — page bg
+  const [authorBooks,   setAuthorBooks]   = useState([]);
+  const [categoryBooks, setCategoryBooks] = useState([]);
   const coverImgRef = useRef(null);
 
   useEffect(() => {
@@ -42,11 +45,13 @@ export default function BookPage() {
     fetchBook
       .then(async (b) => {
         setBook(b);
-        if (b?.id) {
+        if (b?.id && user?.role === 'admin') {
           try {
             const loanData = await loansApi.forBook(b.id);
             setLoans(Array.isArray(loanData) ? loanData : loanData?.loans || []);
           } catch { /* ignore loan errors */ }
+        } else {
+          setLoans([]);
         }
       })
       .catch(err => {
@@ -61,6 +66,34 @@ export default function BookPage() {
     setDominantColor(null);
     setLightestColor(null);
   }, [book?.id]);
+
+  useEffect(() => {
+    if (!book) return;
+    if (user?.role === 'admin') return;
+
+    async function fetchRecommendations() {
+      try {
+        const authorRes = await booksApi.list({ search: book.author, limit: 10 });
+        const filteredAuthor = (authorRes.data || [])
+          .filter(b => b.id !== book.id)
+          .slice(0, 6);
+        setAuthorBooks(filteredAuthor);
+
+        if (book.category) {
+          const categoryRes = await booksApi.list({ category: book.category, limit: 10 });
+          const filteredCategory = (categoryRes.data || [])
+            .filter(b => b.id !== book.id)
+            .filter(b => b.author !== book.author)
+            .slice(0, 6);
+          setCategoryBooks(filteredCategory);
+        }
+      } catch (err) {
+        console.warn('Could not load recommendations:', err.message);
+      }
+    }
+
+    fetchRecommendations();
+  }, [book?.id, book?.author, book?.category, user?.role]);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -402,25 +435,54 @@ export default function BookPage() {
             </a>
           )}
 
-          {/* Loan history (simplified 2-col for narrow screens) */}
-          {loans.length > 0 && (
-            <div className="book-mobile-history">
-              <h3 className="history-title">{t('book.loanHistory')}</h3>
-              <div className="book-mobile-meta-card">
-                {loans.map((loan, i) => (
-                  <div
-                    key={loan.id}
-                    className={`meta-row${i === loans.length - 1 ? ' meta-row-last' : ''}`}
-                  >
-                    <span className="meta-label">
-                      {loan.borrower_name || loan.user?.full_name || '—'}
-                    </span>
-                    <span className={`badge badge-${loan.status}`} style={{ fontSize: 10 }}>
-                      {t(`status.${loan.status}`)}
-                    </span>
-                  </div>
-                ))}
+          {/* Loan history (admin) / Recommendations (member+visitor) — mobile */}
+          {user?.role === 'admin' ? (
+            loans.length > 0 && (
+              <div className="book-mobile-history">
+                <h3 className="history-title">{t('book.loanHistory')}</h3>
+                <div className="book-mobile-meta-card">
+                  {loans.map((loan, i) => (
+                    <div
+                      key={loan.id}
+                      className={`meta-row${i === loans.length - 1 ? ' meta-row-last' : ''}`}
+                    >
+                      <span className="meta-label">
+                        {loan.borrower_name || loan.user?.full_name || '—'}
+                      </span>
+                      <span className={`badge badge-${loan.status}`} style={{ fontSize: 10 }}>
+                        {t(`status.${loan.status}`)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
+            )
+          ) : (
+            <div className="book-recommendations">
+              {authorBooks.length > 0 && (
+                <section className="rec-section">
+                  <h2 className="rec-heading">
+                    {t('book.moreByAuthor', { author: book.author })}
+                  </h2>
+                  <div className="rec-grid">
+                    {authorBooks.map(b => (
+                      <BookCard key={b.id} book={b} />
+                    ))}
+                  </div>
+                </section>
+              )}
+              {categoryBooks.length > 0 && (
+                <section className="rec-section">
+                  <h2 className="rec-heading">
+                    {t('book.moreLikeThis')}
+                  </h2>
+                  <div className="rec-grid">
+                    {categoryBooks.map(b => (
+                      <BookCard key={b.id} book={b} />
+                    ))}
+                  </div>
+                </section>
+              )}
             </div>
           )}
 
@@ -539,9 +601,38 @@ export default function BookPage() {
         </div>
       </div>
 
-      {/* Loan history — desktop only, hidden on mobile via CSS */}
+      {/* Loan history (admin) / Recommendations (member+visitor) — desktop only */}
       <div className="container book-desktop-history">
-        {loanHistory}
+        {user?.role === 'admin' ? (
+          loanHistory
+        ) : (
+          <div className="book-recommendations">
+            {authorBooks.length > 0 && (
+              <section className="rec-section">
+                <h2 className="rec-heading">
+                  {t('book.moreByAuthor', { author: book.author })}
+                </h2>
+                <div className="rec-grid">
+                  {authorBooks.map(b => (
+                    <BookCard key={b.id} book={b} />
+                  ))}
+                </div>
+              </section>
+            )}
+            {categoryBooks.length > 0 && (
+              <section className="rec-section">
+                <h2 className="rec-heading">
+                  {t('book.moreLikeThis')}
+                </h2>
+                <div className="rec-grid">
+                  {categoryBooks.map(b => (
+                    <BookCard key={b.id} book={b} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        )}
       </div>
 
     </div>

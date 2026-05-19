@@ -604,3 +604,51 @@
     gap: 32px;
   }
 }
+
+/* ── Recommendations wrapper ── */
+.book-recommendations {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  margin-top: 48px;
+  padding-bottom: 48px;
+}
+
+/* ── Individual recommendation section ── */
+.rec-section {}
+
+.rec-heading {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--accent-soft);
+}
+
+/* ── Book grid for recommendations ── */
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .rec-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .book-recommendations {
+    gap: 32px;
+    margin-top: 32px;
+  }
+  .rec-heading {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .book-recommendations {
+    padding-bottom: 24px;
+  }
+}

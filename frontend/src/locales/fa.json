@@ -48,7 +48,9 @@
     "showBackCover":  "نمایش پشت جلد",
     "showFrontCover": "نمایش جلد کتاب",
     "notFound":     "کتاب یافت نشد",
-    "notFoundHint": "این کتاب در کتابخانه وجود ندارد."
+    "notFoundHint": "این کتاب در کتابخانه وجود ندارد.",
+    "moreByAuthor": "بیشتر از {{author}}",
+    "moreLikeThis": "کتاب‌های مشابه"
   },
   "checkout": {
     "scanTitle":         "کتاب را اسکن کنید",

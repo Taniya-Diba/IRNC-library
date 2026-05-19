@@ -35,29 +35,29 @@
 
   /* Text */
   --text:        #1a1625;
-  --text-muted:  rgba(60, 40, 120, 0.55);
-  --text-subtle: rgba(80, 60, 160, 0.35);
+  --text-muted:  rgb(74, 51, 144);
+  --text-subtle: rgba(60, 50, 96, 0.796);
 
   /* Status */
-  --status-available:        #15803d;
-  --status-available-bg:     rgba(34, 197, 94, 0.12);
-  --status-available-border: rgba(34, 197, 94, 0.22);
-  --status-available-dot:    #22c55e;
+  --status-available:        #094a21;
+  --status-available-bg:     rgba(30, 235, 105, 0.501);
+  --status-available-border: rgba(19, 117, 55, 0.533);
+  --status-available-dot:    #008330;
 
   --status-out:              #92400e;
-  --status-out-bg:           rgba(245, 158, 11, 0.12);
-  --status-out-border:       rgba(245, 158, 11, 0.22);
-  --status-out-dot:          #f59e0b;
+  --status-out-bg:           rgba(245, 175, 54, 0.604);
+  --status-out-border:       rgba(97, 63, 5, 0.499);
+  --status-out-dot:          #a46903;
 
-  --status-overdue:          #991b1b;
-  --status-overdue-bg:       rgba(239, 68, 68, 0.12);
-  --status-overdue-border:   rgba(239, 68, 68, 0.22);
-  --status-overdue-dot:      #ef4444;
+  --status-overdue:          #830000;
+  --status-overdue-bg:       rgba(239, 68, 68, 0.464);
+  --status-overdue-border:   rgba(180, 28, 28, 0.638);
+  --status-overdue-dot:      #e10303;
 
-  --status-locked:           #5b21b6;
-  --status-locked-bg:        rgba(139, 92, 246, 0.12);
-  --status-locked-border:    rgba(139, 92, 246, 0.22);
-  --status-locked-dot:       #8b5cf6;
+  --status-locked:           #24094f;
+  --status-locked-bg:        rgba(138, 92, 246, 0.601);
+  --status-locked-border:    rgba(47, 21, 105, 0.375);
+  --status-locked-dot:       #a280f1;
 
   /* Layout */
   --nav-height:  68px;
