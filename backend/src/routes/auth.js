@@ -3,6 +3,7 @@ import { z } from 'zod';
 import rateLimit from 'express-rate-limit';
 import { supabaseAdmin, supabaseClient } from '../db/supabase.js';
 import { requireAuth } from '../middleware/auth.js';
+import { sendWelcomeEmail } from '../services/emailService.js';
 
 const router = Router();
 
@@ -98,6 +99,13 @@ router.post('/register', registerLimiter, async (req, res, next) => {
     if (profileError) {
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
       throw profileError;
+    }
+
+    // Send welcome email — non-blocking, never fails the registration
+    if (process.env.RESEND_API_KEY) {
+      sendWelcomeEmail(profile).catch(err =>
+        console.warn('[Email] Welcome email failed:', err.message)
+      );
     }
 
     const { data: signInData, error: signInError } =
@@ -254,6 +262,76 @@ router.post('/verify', requireAuth, async (req, res) => {
       role:          req.user.role
     }
   });
+});
+
+// POST /api/auth/forgot-password
+router.post('/forgot-password', async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ error: 'Email address is required' });
+    }
+
+    const emailLower = email.toLowerCase().trim();
+
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(
+      emailLower,
+      { redirectTo: `${process.env.FRONTEND_URL}/reset-password` }
+    );
+
+    if (error) throw error;
+
+    // Always return success to prevent email enumeration
+    res.json({
+      message: 'If an account with that email exists, a password reset link has been sent.'
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/auth/reset-password
+router.post('/reset-password', async (req, res, next) => {
+  try {
+    const { access_token, new_password } = req.body;
+
+    if (!access_token || !new_password) {
+      return res.status(400).json({
+        error: 'Access token and new password are required'
+      });
+    }
+
+    if (new_password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    }
+    if (new_password.length > 72) {
+      return res.status(400).json({ error: 'Password must be 72 characters or fewer' });
+    }
+
+    const { data: userData, error: getUserError } = await supabaseClient.auth.getUser(access_token);
+
+    if (getUserError || !userData?.user?.id) {
+      return res.status(400).json({
+        error: 'Password reset failed. The link may have expired. Please request a new one.'
+      });
+    }
+
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(
+      userData.user.id,
+      { password: new_password }
+    );
+
+    if (error) {
+      return res.status(400).json({
+        error: 'Password reset failed. The link may have expired. Please request a new one.'
+      });
+    }
+
+    res.json({ message: 'Password updated successfully. You can now sign in.' });
+  } catch (err) {
+    next(err);
+  }
 });
 
 export default router;

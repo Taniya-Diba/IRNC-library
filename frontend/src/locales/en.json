@@ -106,7 +106,27 @@
     "registerBtn":           "Create account",
     "registering":           "Creating account…",
     "haveAccount":           "Already a member?",
-    "loginLink":             "Sign in here"
+    "loginLink":             "Sign in here",
+    "forgotPassword":        "Forgot password?",
+    "forgotPasswordTitle":   "Reset your password",
+    "forgotPasswordSubtitle":"Enter your email and we'll send you a reset link",
+    "sendResetLink":         "Send reset link",
+    "sending":               "Sending…",
+    "resetLinkSent":         "Reset link sent! Check your email.",
+    "updatePassword":        "Update password",
+    "updating":              "Updating…",
+    "passwordUpdated":       "Password updated. You can now sign in.",
+    "invalidResetLink":      "This reset link is invalid or has expired.",
+    "requestNewLink":        "Request a new link",
+    "newPassword":           "New password",
+    "confirmNewPassword":    "Confirm new password",
+    "passwordsNoMatch":      "Passwords do not match",
+    "passwordHint":          "Minimum 8 characters",
+    "passwordStrength": {
+      "weak":   "Weak",
+      "fair":   "Fair",
+      "strong": "Strong"
+    }
   },
   "profile": {
     "title":          "My profile",

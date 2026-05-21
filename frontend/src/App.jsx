@@ -2,18 +2,20 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
 import Navbar from './components/layout/Navbar.jsx';
 
-import CataloguePage    from './pages/CataloguePage.jsx';
-import BookPage         from './pages/BookPage.jsx';
-import CheckoutPage     from './pages/CheckoutPage.jsx';
-import LoginPage        from './pages/LoginPage.jsx';
-import RegisterPage     from './pages/RegisterPage.jsx';
-import UserProfilePage  from './pages/UserProfilePage.jsx';
-import AdminDashboard   from './pages/AdminDashboard.jsx';
-import AdminBooks       from './pages/AdminBooks.jsx';
-import AdminLoans       from './pages/AdminLoans.jsx';
-import AdminMembers       from './pages/AdminMembers.jsx';
-import AdminQRGenerator  from './pages/AdminQRGenerator.jsx';
-import NotFound           from './pages/NotFound.jsx';
+import CataloguePage      from './pages/CataloguePage.jsx';
+import BookPage            from './pages/BookPage.jsx';
+import CheckoutPage        from './pages/CheckoutPage.jsx';
+import LoginPage           from './pages/LoginPage.jsx';
+import RegisterPage        from './pages/RegisterPage.jsx';
+import ForgotPasswordPage  from './pages/ForgotPasswordPage.jsx';
+import ResetPasswordPage   from './pages/ResetPasswordPage.jsx';
+import UserProfilePage     from './pages/UserProfilePage.jsx';
+import AdminDashboard      from './pages/AdminDashboard.jsx';
+import AdminBooks          from './pages/AdminBooks.jsx';
+import AdminLoans          from './pages/AdminLoans.jsx';
+import AdminMembers        from './pages/AdminMembers.jsx';
+import AdminQRGenerator    from './pages/AdminQRGenerator.jsx';
+import NotFound            from './pages/NotFound.jsx';
 
 function LoadingScreen() {
   return (
@@ -57,8 +59,10 @@ function AppRoutes() {
         <Route path="/checkout"   element={<CheckoutPage />} />
 
         {/* Auth */}
-        <Route path="/login"      element={<LoginPage />} />
-        <Route path="/register"   element={<RegisterPage />} />
+        <Route path="/login"           element={<LoginPage />} />
+        <Route path="/register"        element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password"  element={<ResetPasswordPage />} />
 
         {/* Member */}
         <Route path="/profile"    element={<MemberRoute><UserProfilePage /></MemberRoute>} />

@@ -6,6 +6,12 @@ import toast from 'react-hot-toast';
 import './LoginPage.css';
 import './RegisterPage.css';
 
+function getPasswordStrength(password) {
+  if (!password || password.length < 8) return 'weak';
+  if (password.length < 12)             return 'fair';
+  return 'strong';
+}
+
 export default function RegisterPage() {
   const { t } = useTranslation();
   const { register } = useAuth();
@@ -22,20 +28,27 @@ export default function RegisterPage() {
     return e => setForm(f => ({ ...f, [field]: e.target.value }));
   }
 
+  function validatePassword(password, confirm) {
+    if (password.length < 8)  return t('auth.passwordHint');
+    if (password.length > 72) return 'Password must be 72 characters or fewer';
+    if (password !== confirm)  return t('auth.passwordsNoMatch');
+    return null;
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     const newErrors = {};
-    if (form.password.length < 8) newErrors.password = t('errors.unknownError');
-    if (form.password !== form.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+    const pwdError = validatePassword(form.password, form.confirmPassword);
+    if (pwdError) newErrors.confirmPassword = pwdError;
     if (Object.keys(newErrors).length) { setErrors(newErrors); return; }
     setErrors({});
     setLoading(true);
     try {
-      const u = await register({
-        full_name: form.full_name,
-        email: form.email,
-        password: form.password,
-        phone: form.phone,
+      await register({
+        full_name:     form.full_name,
+        email:         form.email,
+        password:      form.password,
+        phone:         form.phone,
         membership_id: form.membership_id,
       });
       const dest = location.state?.from?.pathname || location.state?.from || '/';
@@ -53,6 +66,8 @@ export default function RegisterPage() {
       setLoading(false);
     }
   }
+
+  const strength = getPasswordStrength(form.password);
 
   return (
     <div className="auth-page page-content">
@@ -74,7 +89,15 @@ export default function RegisterPage() {
           <div className="form-group">
             <label className="form-label">{t('auth.password')}</label>
             <input className="form-input" type="password" value={form.password} onChange={set('password')} required minLength={8} autoComplete="new-password" />
-            {errors.password && <p className="form-error">{errors.password}</p>}
+            {form.password && (
+              <div className="password-strength">
+                <div className={`strength-bar strength-${strength}`} />
+                <span className={`strength-label strength-label-${strength}`}>
+                  {t(`auth.passwordStrength.${strength}`)}
+                </span>
+              </div>
+            )}
+            <p className="form-hint">{t('auth.passwordHint')}</p>
           </div>
           <div className="form-group">
             <label className="form-label">{t('auth.confirmPassword')}</label>

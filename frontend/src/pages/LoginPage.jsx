@@ -70,6 +70,11 @@ export default function LoginPage() {
               required
               autoComplete="current-password"
             />
+            <div className="forgot-password-row">
+              <Link to="/forgot-password" className="forgot-password-link">
+                {t('auth.forgotPassword')}
+              </Link>
+            </div>
           </div>
 
           {error && <p className="form-error auth-error">{error}</p>}

@@ -2,3 +2,32 @@
 .auth-register-wide {
   max-width: 480px;
 }
+
+.password-strength {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  margin-bottom: 2px;
+}
+
+.strength-bar {
+  height: 3px;
+  border-radius: 99px;
+  flex: 1;
+  transition: background 0.2s, width 0.2s;
+}
+
+.strength-weak   { background: var(--status-overdue-dot, #f87171); width: 33%; }
+.strength-fair   { background: var(--status-out-dot,     #fbbf24); width: 66%; }
+.strength-strong { background: var(--status-available-dot, #34d399); width: 100%; }
+
+.strength-label {
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.strength-label-weak   { color: var(--status-overdue,   #ef4444); }
+.strength-label-fair   { color: var(--status-out,       #d97706); }
+.strength-label-strong { color: var(--status-available, #10b981); }

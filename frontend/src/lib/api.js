@@ -57,12 +57,14 @@ async function request(path, options = {}, skipRefresh = false) {
 }
 
 export const auth = {
-  register: (body)            => request('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
-  login:    (email, password) => request('/auth/login',    { method: 'POST', body: JSON.stringify({ email, password }) }),
-  logout:   ()                => request('/auth/logout',   { method: 'POST' }),
-  refresh:  (refresh_token)   => request('/auth/refresh',  { method: 'POST', body: JSON.stringify({ refresh_token }) }),
-  verify:   ()                => request('/auth/verify',   { method: 'POST' }),
-  me:       ()                => request('/auth/me'),
+  register:      (body)                     => request('/auth/register',       { method: 'POST', body: JSON.stringify(body) }),
+  login:         (email, password)          => request('/auth/login',          { method: 'POST', body: JSON.stringify({ email, password }) }),
+  logout:        ()                         => request('/auth/logout',         { method: 'POST' }),
+  refresh:       (refresh_token)            => request('/auth/refresh',        { method: 'POST', body: JSON.stringify({ refresh_token }) }),
+  verify:        ()                         => request('/auth/verify',         { method: 'POST' }),
+  me:            ()                         => request('/auth/me'),
+  forgotPassword:(email)                    => request('/auth/forgot-password',{ method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword: (access_token, new_password) => request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ access_token, new_password }) }),
 };
 
 export const books = {

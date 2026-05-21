@@ -106,7 +106,27 @@
     "registerBtn":           "ایجاد حساب",
     "registering":           "در حال ایجاد حساب…",
     "haveAccount":           "قبلاً عضو شده‌اید؟",
-    "loginLink":             "اینجا وارد شوید"
+    "loginLink":             "اینجا وارد شوید",
+    "forgotPassword":        "رمز عبور را فراموش کردید؟",
+    "forgotPasswordTitle":   "بازیابی رمز عبور",
+    "forgotPasswordSubtitle":"ایمیل خود را وارد کنید تا لینک بازیابی برایتان ارسال شود",
+    "sendResetLink":         "ارسال لینک بازیابی",
+    "sending":               "در حال ارسال…",
+    "resetLinkSent":         "لینک بازیابی ارسال شد! ایمیل خود را بررسی کنید.",
+    "updatePassword":        "بروزرسانی رمز عبور",
+    "updating":              "در حال بروزرسانی…",
+    "passwordUpdated":       "رمز عبور بروز شد. اکنون می‌توانید وارد شوید.",
+    "invalidResetLink":      "این لینک بازیابی نامعتبر یا منقضی شده است.",
+    "requestNewLink":        "درخواست لینک جدید",
+    "newPassword":           "رمز عبور جدید",
+    "confirmNewPassword":    "تأیید رمز عبور جدید",
+    "passwordsNoMatch":      "رمزهای عبور مطابقت ندارند",
+    "passwordHint":          "حداقل ۸ کاراکتر",
+    "passwordStrength": {
+      "weak":   "ضعیف",
+      "fair":   "متوسط",
+      "strong": "قوی"
+    }
   },
   "profile": {
     "title":          "پروفایل من",

@@ -71,3 +71,18 @@
 .auth-register-wide {
   max-width: 480px;
 }
+
+.forgot-password-row {
+  text-align: end;
+  margin-top: 4px;
+}
+
+.forgot-password-link {
+  font-size: 12px;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.forgot-password-link:hover {
+  text-decoration: underline;
+}
