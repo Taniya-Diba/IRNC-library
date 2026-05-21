@@ -1,0 +1,45 @@
+/* Mobile first: single column */
+.admin-shell {
+  display: block;
+  min-height: 100vh;
+}
+
+.admin-shell-main {
+  /* On mobile, content flows normally below the Navbar */
+}
+
+/* Desktop: two-column grid */
+@media (min-width: 1024px) {
+  .admin-shell {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100vh;
+    align-items: start;
+  }
+
+  .admin-shell-main {
+    min-height: 100vh;
+    padding-top: 0;
+  }
+
+  /* Remove the top padding reserved for the fixed navbar —
+     on desktop the navbar is hidden and the sidebar takes its place */
+  .admin-shell-main .page-content {
+    padding-top: 32px;
+  }
+}
+
+/* RTL: sidebar moves to the right */
+@media (min-width: 1024px) {
+  [dir="rtl"] .admin-shell {
+    grid-template-columns: 1fr 220px;
+  }
+
+  [dir="rtl"] .admin-shell .admin-sidebar {
+    order: 2;
+  }
+
+  [dir="rtl"] .admin-shell .admin-shell-main {
+    order: 1;
+  }
+}

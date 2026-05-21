@@ -73,8 +73,14 @@ export default function Navbar() {
     </>
   );
 
+  const isAdminPage = location.pathname.startsWith('/admin') &&
+                      location.pathname !== '/admin/login';
+
   return (
-    <nav className="navbar glass-strong" ref={menuRef}>
+    <nav
+      className={`navbar glass-strong${isAdminPage ? ' navbar-admin-hidden' : ''}`}
+      ref={menuRef}
+    >
       <div className="navbar-inner container">
         {/* Brand */}
         <Link to="/" className="navbar-brand">

@@ -182,7 +182,7 @@
 }
 
 /* Mobile */
-@media (max-width: 768px) {
+@media (max-width: 1023px) {
   .navbar-links {
     display: none;
   }
@@ -198,3 +198,15 @@
     box-shadow: #150a3694 0px 4px 12px -2px;
   }
 }
+
+/* On desktop, hide the navbar entirely on admin pages
+   (the sidebar replaces it there) */
+@media (min-width: 1024px) {
+  .navbar.navbar-admin-hidden {
+    display: none;
+  }
+}
+
+/* When navbar is hidden, pages inside AdminShell must not
+   have the top padding gap that was reserved for the navbar.
+   AdminShell.css handles this via .admin-shell-main .page-content */

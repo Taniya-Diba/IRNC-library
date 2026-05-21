@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
 import Navbar from './components/layout/Navbar.jsx';
+import AdminShell from './components/layout/AdminShell.jsx';
 
 import CataloguePage      from './pages/CataloguePage.jsx';
 import BookPage            from './pages/BookPage.jsx';
@@ -69,11 +70,11 @@ function AppRoutes() {
 
         {/* Admin */}
         <Route path="/admin/login"   element={<AdminLoginRedirect />} />
-        <Route path="/admin"         element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-        <Route path="/admin/books"   element={<AdminRoute><AdminBooks /></AdminRoute>} />
-        <Route path="/admin/loans"   element={<AdminRoute><AdminLoans /></AdminRoute>} />
-        <Route path="/admin/members"       element={<AdminRoute><AdminMembers /></AdminRoute>} />
-        <Route path="/admin/qr-generator" element={<AdminRoute><AdminQRGenerator /></AdminRoute>} />
+        <Route path="/admin"         element={<AdminRoute><AdminShell><AdminDashboard /></AdminShell></AdminRoute>} />
+        <Route path="/admin/books"   element={<AdminRoute><AdminShell><AdminBooks /></AdminShell></AdminRoute>} />
+        <Route path="/admin/loans"   element={<AdminRoute><AdminShell><AdminLoans /></AdminShell></AdminRoute>} />
+        <Route path="/admin/members"       element={<AdminRoute><AdminShell><AdminMembers /></AdminShell></AdminRoute>} />
+        <Route path="/admin/qr-generator" element={<AdminRoute><AdminShell><AdminQRGenerator /></AdminShell></AdminRoute>} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
